@@ -1,0 +1,70 @@
+:root {
+  --ccs-primary: #f37021;
+  /* CCS Orange */
+  --ccs-secondary: #212121;
+  /* Dark Grey/Black */
+  --ccs-accent: #ff8c00;
+  --ccs-bg-light: #fffaf5;
+}
+
+body {
+  background-color: var(--ccs-bg-light);
+  font-family: 'Inter', sans-serif;
+}
+
+.navbar-ccs {
+  background: linear-gradient(90deg, var(--ccs-primary), var(--ccs-secondary));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar {
+  min-height: calc(100vh - 60px);
+  background-color: #ffffff;
+  border-right: 1px solid #feeadd;
+}
+
+.nav-link.active {
+  background-color: #fff4ed;
+  color: var(--ccs-primary) !important;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.btn-primary {
+  background-color: var(--ccs-primary);
+  border-color: var(--ccs-primary);
+}
+
+.btn-primary:hover {
+  background-color: #d15d1a;
+  border-color: #d15d1a;
+}
+
+.card-stats {
+  border-radius: 1rem;
+  border: none;
+  box-shadow: 0 4px 15px rgba(243, 112, 33, 0.08);
+  transition: transform 0.2s;
+}
+
+.card-stats:hover {
+  transform: translateY(-5px);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(243, 112, 33, 0.1);
+}
+
+.text-primary {
+  color: var(--ccs-primary) !important;
+}
+
+.bg-primary {
+  background-color: var(--ccs-primary) !important;
+}
+
+.badge.bg-primary {
+  background-color: var(--ccs-primary) !important;
+}
