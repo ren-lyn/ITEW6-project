@@ -6,6 +6,9 @@ use App\Models\Student;
 use App\Models\Faculty;
 use App\Models\Event;
 use App\Models\Research;
+use App\Models\AcademicRecord;
+use App\Models\BehavioralProfile;
+use App\Models\Guardian;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -19,20 +22,22 @@ class DashboardController extends Controller
         $upcomingEvents = Event::where('event_date', '>=', now())->count();
 
         // Statistics by course
-        $studentByCourse = Student::select('course', DB::raw('count(*) as total'))
+        $studentByCourse = AcademicRecord::select('course', DB::raw('count(*) as total'))
+            ->whereNotNull('course')
             ->groupBy('course')
             ->get();
 
         // Statistics by Academic Standing
-        $standingSummary = Student::select('academic_standing', DB::raw('count(*) as total'))
+        $standingSummary = AcademicRecord::select('academic_standing', DB::raw('count(*) as total'))
+            ->whereNotNull('academic_standing')
             ->groupBy('academic_standing')
             ->get();
 
         // Risk indicators summary (Improved logic)
         $riskSummary = [
-            'academic_risk' => Student::where('academic_standing', 'Probation')->count(),
-            'attendance_risk' => Student::where('behavioral_info_json->attendance_pattern', 'Irregular')->count(),
-            'financial_concern' => Student::where('family_info_json->income_bracket', 'Below PHP 10,000')->count(),
+            'academic_risk' => AcademicRecord::where('academic_standing', 'Probation')->count(),
+            'attendance_risk' => BehavioralProfile::where('attendance_percentage', '<', 75)->count(),
+            'financial_concern' => Guardian::where('family_income_bracket', 'Below 10,000')->orWhere('family_income_bracket', 'Below PHP 10,000')->count(),
         ];
 
         return response()->json([
