@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\ResearchController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DocumentController;
+use App\Http\Controllers\Api\AdminVerificationController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -17,7 +19,29 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile/completion', [\App\Http\Controllers\Api\ProfileCompletionController::class, 'getScore']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Document Upload Phase (Students/Faculty)
+    Route::get('/documents', [DocumentController::class, 'index']);
+    Route::post('/documents', [DocumentController::class, 'upload']);
+
+    // Admin Verification Phase
+    // Only allow admins to use these routes
+    Route::middleware(\App\Http\Middleware\AdminMiddleware::class)->group(function () {
+        Route::get('/admin/verifications', [AdminVerificationController::class, 'index']);
+        Route::post('/admin/verifications/{id}/approve', [AdminVerificationController::class, 'approve']);
+        Route::post('/admin/verifications/{id}/reject', [AdminVerificationController::class, 'reject']);
+
+        // Phase 7: Reporting
+        Route::get('/admin/reports/students', [\App\Http\Controllers\Api\ReportController::class, 'getStudentsReport']);
+        Route::get('/admin/reports/faculty', [\App\Http\Controllers\Api\ReportController::class, 'getFacultyReport']);
+
+        // Phase 8: Archiving
+        Route::get('/admin/archives', [\App\Http\Controllers\Api\ArchivingController::class, 'index']);
+        Route::post('/admin/users/{id}/archive', [\App\Http\Controllers\Api\ArchivingController::class, 'archive']);
+        Route::post('/admin/users/{id}/restore', [\App\Http\Controllers\Api\ArchivingController::class, 'restore']);
+    });
 
     // Modules
     Route::apiResource('students', StudentController::class);

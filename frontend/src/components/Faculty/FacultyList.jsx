@@ -40,6 +40,20 @@ const FacultyList = () => {
         fetchFaculties();
     };
 
+    const handleArchive = async (userId) => {
+        if (!userId) return;
+        if (!window.confirm('Are you sure you want to archive this user profile?')) return;
+
+        try {
+            await api.post(`/admin/users/${userId}/archive`);
+            alert('User archived successfully');
+            fetchFaculties();
+        } catch (error) {
+            console.error('Error archiving user:', error);
+            alert(error.response?.data?.message || 'Error archiving user.');
+        }
+    };
+
     if (showForm) {
         return <FacultyForm onSave={() => { setShowForm(false); fetchFaculties(); }} onCancel={() => setShowForm(false)} />;
     }
@@ -115,7 +129,10 @@ const FacultyList = () => {
                                 </div>
                                 <div className="mt-auto d-flex justify-content-between align-items-center">
                                     <span className="small text-muted">ID: {faculty.employee_id}</span>
-                                    <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.id)}>View Profile</button>
+                                    <div className="d-flex gap-2">
+                                        <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.id)}>View Profile</button>
+                                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(faculty.user_id)} title="Archive"><i className="bi bi-archive"></i></button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

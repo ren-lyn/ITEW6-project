@@ -12,6 +12,13 @@ import ResearchList from './components/Research/ResearchList';
 import MaterialList from './components/Material/MaterialList';
 import ScheduleList from './components/Schedule/ScheduleList';
 
+// Profiling Cycle Pages
+import UserDashboard from './pages/Dashboard/UserDashboard';
+import DocumentUpload from './pages/Document/DocumentUpload';
+import VerificationList from './pages/Admin/VerificationList';
+import AdminReports from './pages/Admin/AdminReports';
+import AdminArchives from './pages/Admin/AdminArchives';
+
 // Assets
 import ccsLogo from './assets/CCS LOGO.jpg';
 
@@ -24,6 +31,7 @@ const Layout = ({ children }) => {
     const navigate = useNavigate();
     const userJson = localStorage.getItem('user');
     const user = userJson ? JSON.parse(userJson) : null;
+    const role = user?.role || 'student';
 
     const handleLogout = () => {
         localStorage.removeItem('access_token');
@@ -31,15 +39,35 @@ const Layout = ({ children }) => {
         navigate('/login');
     };
 
-    const menuItems = [
-        { name: 'Dashboard', path: '/', icon: 'bi-grid-1x2' },
-        { name: 'Students', path: '/students', icon: 'bi-people' },
-        { name: 'Faculty', path: '/faculty', icon: 'bi-person-badge' },
-        { name: 'Events', path: '/events', icon: 'bi-calendar-date' },
-        { name: 'Scheduling', path: '/scheduling', icon: 'bi-clock-history' },
-        { name: 'Research', path: '/research', icon: 'bi-journal-code' },
-        { name: 'Materials', path: '/materials', icon: 'bi-file-earmark-pdf' },
-    ];
+    let menuItems = [];
+    if (role === 'admin') {
+        menuItems = [
+            { name: 'Admin Dashboard', path: '/', icon: 'bi-grid-1x2' },
+            { name: 'Verification Approvals', path: '/verifications', icon: 'bi-check2-square' },
+            { name: 'Reports & Analytics', path: '/reports', icon: 'bi-bar-chart-steps' },
+            { name: 'Archived Profiles', path: '/archives', icon: 'bi-archive' },
+            { name: 'Students', path: '/students', icon: 'bi-people' },
+            { name: 'Faculty', path: '/faculty', icon: 'bi-person-badge' },
+            { name: 'Events', path: '/events', icon: 'bi-calendar-date' },
+            { name: 'Scheduling', path: '/scheduling', icon: 'bi-clock-history' },
+            { name: 'Research', path: '/research', icon: 'bi-journal-code' },
+            { name: 'Materials', path: '/materials', icon: 'bi-file-earmark-pdf' },
+        ];
+    } else if (role === 'faculty') {
+        menuItems = [
+            { name: 'Faculty Dashboard', path: '/', icon: 'bi-grid-1x2' },
+            { name: 'My Profile', path: '/profile', icon: 'bi-person' },
+            { name: 'Documents', path: '/documents', icon: 'bi-file-earmark' },
+            { name: 'My Syllabi/Research', path: '/research', icon: 'bi-journal-text' },
+        ];
+    } else {
+        menuItems = [
+            { name: 'Student Dashboard', path: '/', icon: 'bi-grid-1x2' },
+            { name: 'My Profile', path: '/profile', icon: 'bi-person' },
+            { name: 'Documents', path: '/documents', icon: 'bi-file-earmark' },
+            { name: 'Events', path: '/events', icon: 'bi-calendar-event' },
+        ];
+    }
 
     return (
         <div className="d-flex flex-column min-vh-100">
@@ -77,6 +105,7 @@ const Layout = ({ children }) => {
                                             className={`nav-link py-2 px-3 rounded-3 d-flex align-items-center transition-all ${location.pathname === item.path ? 'active text-primary fw-bold' : 'text-secondary'}`}
                                             to={item.path}
                                         >
+                                            <i className={`bi ${item.icon} me-2`}></i>
                                             <span>{item.name}</span>
                                         </Link>
                                     </li>
@@ -97,21 +126,38 @@ const Layout = ({ children }) => {
     );
 };
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
     const isAuthenticated = !!localStorage.getItem('access_token');
-    return isAuthenticated ? children : <Navigate to="/login" />;
+    const userJson = localStorage.getItem('user');
+    const user = userJson ? JSON.parse(userJson) : null;
+
+    if (!isAuthenticated) return <Navigate to="/login" />;
+
+    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" />; // Redirect back to their dashboard if unauthorized
+    }
+
+    return children;
 };
+
+// Placeholder components to prevent errors until fully implemented
+const DummyPage = ({ title }) => <div><h2>{title}</h2><p>This module is under construction.</p></div>;
 
 function App() {
     return (
         <Router>
             <Routes>
                 <Route path="/login" element={<Login />} />
+
+                {/* Admin Routes */}
                 <Route path="/*" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute allowedRoles={['admin']}>
                         <Layout>
                             <Routes>
                                 <Route path="/" element={<Dashboard />} />
+                                <Route path="/verifications" element={<VerificationList />} />
+                                <Route path="/reports" element={<AdminReports />} />
+                                <Route path="/archives" element={<AdminArchives />} />
                                 <Route path="/students" element={<StudentList />} />
                                 <Route path="/faculty" element={<FacultyList />} />
                                 <Route path="/events" element={<EventList />} />
@@ -123,6 +169,23 @@ function App() {
                         </Layout>
                     </ProtectedRoute>
                 } />
+
+                {/* Student / Faculty Routes */}
+                <Route path="/user/*" element={
+                    <ProtectedRoute allowedRoles={['student', 'faculty']}>
+                        <Layout>
+                            <Routes>
+                                <Route path="/" element={<UserDashboard />} />
+                                <Route path="/profile" element={<DummyPage title="My Profile Phase 2" />} />
+                                <Route path="/documents" element={<DocumentUpload />} />
+                                <Route path="/events" element={<EventList />} />
+                                <Route path="/research" element={<ResearchList />} />
+                                <Route path="*" element={<Navigate to="/user/" />} />
+                            </Routes>
+                        </Layout>
+                    </ProtectedRoute>
+                } />
+
             </Routes>
         </Router>
     );

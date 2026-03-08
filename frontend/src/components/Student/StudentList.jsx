@@ -43,6 +43,20 @@ const StudentList = () => {
         fetchStudents();
     };
 
+    const handleArchive = async (userId) => {
+        if (!userId) return;
+        if (!window.confirm('Are you sure you want to archive this user profile?')) return;
+
+        try {
+            await api.post(`/admin/users/${userId}/archive`);
+            alert('User archived successfully');
+            fetchStudents();
+        } catch (error) {
+            console.error('Error archiving user:', error);
+            alert(error.response?.data?.message || 'Error archiving user.');
+        }
+    };
+
     if (showForm) {
         return <StudentForm onSave={() => { setShowForm(false); fetchStudents(); }} onCancel={() => setShowForm(false)} />;
     }
@@ -136,9 +150,10 @@ const StudentList = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="d-flex align-items-center">
-                                                <button className="btn btn-sm btn-outline-primary rounded-pill px-3 me-2" onClick={() => setSelectedStudentId(student.id)}>View Profile</button>
+                                            <div className="d-flex align-items-center gap-2">
+                                                <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => setSelectedStudentId(student.id)}>View Profile</button>
                                                 <button className="btn btn-sm btn-outline-secondary rounded-pill px-3">Edit</button>
+                                                <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(student.user_id)}><i className="bi bi-archive"></i></button>
                                             </div>
                                         </td>
                                     </tr>

@@ -11,18 +11,47 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'birthdate' => 'required|date',
+            'gender' => 'required|in:Male,Female,Other',
+            'address' => 'required|string',
+            'contact_number' => 'required|string|max:20',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'in:admin,faculty,student,staff'
+            'role' => 'required|in:admin,faculty,student,staff'
         ]);
 
         $user = User::create([
-            'name' => $validated['name'],
+            'name' => $validated['first_name'] . ' ' . $validated['last_name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $validated['role'] ?? 'student',
+            'role' => $validated['role'],
         ]);
+
+        if ($validated['role'] === 'student') {
+            \App\Models\Student::create([
+                'user_id' => $user->id,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'birthdate' => $validated['birthdate'],
+                'gender' => $validated['gender'],
+                'present_address' => $validated['address'],
+                'contact_number' => $validated['contact_number'],
+                'email' => $validated['email'],
+            ]);
+        } elseif ($validated['role'] === 'faculty') {
+            \App\Models\Faculty::create([
+                'user_id' => $user->id,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'birthdate' => $validated['birthdate'],
+                'gender' => $validated['gender'],
+                'address' => $validated['address'],
+                'contact_number' => $validated['contact_number'],
+                'email' => $validated['email'],
+            ]);
+        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
