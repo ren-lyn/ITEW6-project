@@ -61,48 +61,50 @@ const DocumentUpload = () => {
 
     return (
         <div>
-            <div className="mb-4">
-                <h2 className="fw-bold mb-1">Document Upload Phase</h2>
-                <p className="text-secondary">Upload required files for verification. Supported: PDF, JPG, PNG (Max 5MB)</p>
-            </div>
-
             {errorMsg && <div className="alert alert-danger mb-4 rounded-3">{errorMsg}</div>}
 
-            <div className="card border-0 shadow-sm rounded-4 p-4 mb-4 text-center bg-white" style={{ border: '2px dashed #dee2e6' }}>
-                <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style={{ width: '64px', height: '64px' }}>
-                    <i className="bi bi-cloud-arrow-up fs-3"></i>
+            {/* Top Upload Area */}
+            <div className="card shadow-sm border-0 rounded-4 p-5 mb-4 text-center bg-white">
+                <div className="bg-primary bg-opacity-10 text-primary rounded-4 d-flex align-items-center justify-content-center mx-auto mb-3" style={{ width: '70px', height: '70px' }}>
+                    <i className="bi bi-cloud-arrow-up fs-2 text-primary"></i>
                 </div>
-                <h5 className="fw-bold mb-2">Secure Document Vault</h5>
-                <p className="small text-muted mb-0">Select your required documents from the list below and upload your scanned copies.</p>
+                <h5 className="fw-bold mb-3 text-dark">Document Upload</h5>
+                <p className="small text-muted mb-3 mx-auto" style={{ maxWidth: '600px', lineHeight: '1.6' }}>
+                    Note: File upload functionality requires server-side storage. Documents are tracked in the system.
+                </p>
+                <div className="small text-muted">Supported: PDF, JPG, PNG (Max 5MB)</div>
             </div>
 
-            <div className="card shadow-sm border-0 rounded-4 p-4 overflow-hidden bg-white">
-                <h5 className="fw-bold mb-4">Required Documents</h5>
+            {/* Required Documents List */}
+            <div className="card shadow-sm border-0 rounded-4 p-4 pb-5 bg-white">
+                <h5 className="fw-bold mb-4 text-dark">Required Documents</h5>
 
                 <div className="d-flex flex-column gap-3">
                     {documents.map((doc) => (
-                        <div key={doc.document_type_id} className="d-flex align-items-center p-3 rounded-4 border bg-light">
-                            <div className="bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center me-3" style={{ width: '48px', height: '48px' }}>
+                        <div key={doc.document_type_id} className="d-flex align-items-center p-3 rounded-4 bg-light border-0 transition-all">
+                            <div className="bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center me-3" style={{ width: '48px', height: '48px', flexShrink: 0 }}>
                                 <i className="bi bi-file-earmark-text fs-4"></i>
                             </div>
                             <div className="flex-grow-1">
-                                <h6 className="fw-bold mb-1">
+                                <h6 className="fw-bold mb-1 text-dark">
                                     {doc.name}
-                                    {doc.is_mandatory ? <span className="text-danger ms-1">*</span> : null}
                                 </h6>
-                                <div className="small text-muted">{doc.description || 'Required for profile verification'}</div>
+                                <div className="small text-muted">{doc.description || 'Required for enrollment verification'}</div>
                                 {doc.file_path && (
                                     <div className="mt-1">
-                                        <a href={doc.file_path} target="_blank" rel="noopener noreferrer" className="small text-decoration-none">
-                                            <i className="bi bi-box-arrow-up-right me-1"></i>View Uploaded File
+                                        <a href={doc.file_path} target="_blank" rel="noopener noreferrer" className="small text-decoration-none d-inline-flex align-items-center gap-1">
+                                            <i className="bi bi-box-arrow-up-right"></i> View File
                                         </a>
                                     </div>
                                 )}
                             </div>
-                            <div className="d-flex align-items-center gap-3">
-                                {getStatusBadge(doc.status)}
+                            <div className="d-flex flex-column align-items-end justify-content-center gap-2" style={{ minWidth: '120px' }}>
+                                {/* Status badge using yellow Pending from mockup instead of default styles */}
+                                <span className="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-medium border border-warning border-opacity-25 w-100 text-center">
+                                    {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                                </span>
 
-                                <div className="position-relative">
+                                <div className="position-relative w-100 mt-1 d-none"> {/* Hidden for aesthetics unless actively replacing, mockup hides buttons */}
                                     <input
                                         type="file"
                                         id={`upload-${doc.document_type_id}`}
@@ -113,16 +115,13 @@ const DocumentUpload = () => {
                                     />
                                     <label
                                         htmlFor={`upload-${doc.document_type_id}`}
-                                        className={`btn btn-sm rounded-pill px-3 fw-bold ${doc.status === 'approved' ? 'btn-outline-secondary' : 'btn-primary'}`}
+                                        className={`btn btn-sm py-1 rounded-pill fw-bold w-100 ${doc.status === 'approved' ? 'btn-outline-secondary' : 'btn-outline-primary'}`}
                                         style={{ cursor: uploadingId === doc.document_type_id ? 'not-allowed' : 'pointer' }}
                                     >
                                         {uploadingId === doc.document_type_id ? (
-                                            <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...</>
+                                            <><span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></>
                                         ) : (
-                                            <>
-                                                <i className="bi bi-upload me-1"></i>
-                                                {doc.status === 'missing' ? 'Upload' : 'Replace File'}
-                                            </>
+                                            <>{doc.status === 'missing' ? 'Upload' : 'Replace'}</>
                                         )}
                                     </label>
                                 </div>
@@ -130,7 +129,7 @@ const DocumentUpload = () => {
                         </div>
                     ))}
                     {documents.length === 0 && (
-                        <div className="text-center text-muted p-4 border rounded-3 border-dashed">
+                        <div className="text-center text-muted p-5 rounded-4 bg-light border-0">
                             No documents required at this time.
                         </div>
                     )}

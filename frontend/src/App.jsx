@@ -19,18 +19,24 @@ import VerificationList from './pages/Admin/VerificationList';
 import AdminReports from './pages/Admin/AdminReports';
 import AdminArchives from './pages/Admin/AdminArchives';
 
-// Assets
-import ccsLogo from './assets/CCS LOGO.jpg';
-
 // Pages
 import Dashboard from './pages/Dashboard/Dashboard';
+import UserProfile from './pages/Dashboard/UserProfile';
 import Login from './pages/Auth/Login';
 
 const Layout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const userJson = localStorage.getItem('user');
-    const user = userJson ? JSON.parse(userJson) : null;
+    let user = null;
+    try {
+        if (userJson && userJson !== "undefined") {
+            user = JSON.parse(userJson);
+        }
+    } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+        localStorage.removeItem('user');
+    }
     const role = user?.role || 'student';
 
     const handleLogout = () => {
@@ -71,53 +77,46 @@ const Layout = ({ children }) => {
 
     return (
         <div className="d-flex flex-column min-vh-100">
-            <nav className="navbar navbar-dark navbar-ccs sticky-top px-4 py-2">
+            <nav className="navbar navbar-dark sticky-top px-4 py-3" style={{ backgroundColor: 'var(--ccs-bg-dark)', zIndex: 1040 }}>
                 <Link className="navbar-brand fw-bold d-flex align-items-center" to="/">
-                    <span className="fs-4 tracking-tight">CCS PROFILER</span>
+                    <span className="fs-5 tracking-tight ms-2">CCS PROFILER</span>
                 </Link>
                 <div className="d-flex align-items-center">
-                    <div className="text-white me-3 d-none d-md-block small opacity-75">
-                        {user ? `${user.name} (${user.role.toUpperCase()})` : 'Guest'}
-                    </div>
-                    <button className="btn btn-sm btn-outline-light rounded-pill px-3 shadow-none border-0 opacity-75" onClick={handleLogout}>
+                    <button className="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none border-0" onClick={handleLogout}>
                         Logout
                     </button>
                 </div>
             </nav>
             <div className="container-fluid flex-grow-1">
-                <div className="row flex-nowrap">
-                    <nav className="col-md-2 d-none d-md-block sidebar py-4 sticky-top bg-white border-end shadow-sm" style={{ top: '60px', height: 'calc(100vh - 60px)' }}>
+                <div className="row flex-nowrap h-100">
+                    <nav className="col-md-2 d-none d-md-block sidebar py-4 sticky-top shadow-sm" style={{ top: '64px', height: 'calc(100vh - 64px)', zIndex: 1030 }}>
                         <div className="sidebar-sticky h-100 d-flex flex-column">
-                            <div className="text-center mb-4 px-3">
-                                <img
-                                    src={ccsLogo}
-                                    alt="CCS Logo"
-                                    className="rounded-circle shadow-sm mb-2"
-                                    style={{ width: '80px', height: '80px', objectFit: 'cover', border: '3px solid #f37021' }}
-                                />
-                                <div className="small fw-bold text-dark mt-2">College of Computing Studies</div>
-                                <div className="text-muted" style={{ fontSize: '0.7rem' }}>Pamantasan ng Cabuyao</div>
-                            </div>
-                            <ul className="nav flex-column px-2 flex-grow-1">
+                            {/* Top part of sidebar removed logo */}
+                            <ul className="nav flex-column px-3 flex-grow-1 mt-2">
                                 {menuItems.map((item) => (
-                                    <li className="nav-item mb-1" key={item.path}>
+                                    <li className="nav-item mb-2" key={item.path}>
                                         <Link
-                                            className={`nav-link py-2 px-3 rounded-3 d-flex align-items-center transition-all ${location.pathname === item.path ? 'active text-primary fw-bold' : 'text-secondary'}`}
+                                            className={`nav-link py-2 px-3 d-flex align-items-center transition-all ${location.pathname === item.path ? 'active' : ''}`}
                                             to={item.path}
                                         >
-                                            <i className={`bi ${item.icon} me-2`}></i>
-                                            <span>{item.name}</span>
+                                            <i className={`bi ${item.icon} me-3 fs-5`}></i>
+                                            <span className="fw-medium">{item.name}</span>
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                            <div className="p-3 bg-light rounded-4 mx-2 mt-auto mb-3">
-                                <div className="small fw-bold text-dark">System Version</div>
-                                <div className="text-muted small">v1.2.0-stable</div>
+                            <div className="mt-auto px-4 py-3 border-top border-secondary border-opacity-25 d-flex align-items-center">
+                                <div className="bg-success text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
+                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div className="overflow-hidden">
+                                    <div className="fw-bold text-white text-truncate">{user?.name || 'Guest User'}</div>
+                                    <div className="text-muted small text-capitalize">{user?.role || 'Guest'}</div>
+                                </div>
                             </div>
                         </div>
                     </nav>
-                    <main role="main" className="col-md-10 ms-sm-auto px-md-5 py-5 bg-light min-vh-100">
+                    <main role="main" className="col-md-10 ms-sm-auto px-md-5 py-5 overflow-auto" style={{ backgroundColor: 'var(--ccs-bg-light)', minHeight: 'calc(100vh - 64px)' }}>
                         {children}
                     </main>
                 </div>
@@ -129,7 +128,15 @@ const Layout = ({ children }) => {
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const isAuthenticated = !!localStorage.getItem('access_token');
     const userJson = localStorage.getItem('user');
-    const user = userJson ? JSON.parse(userJson) : null;
+    let user = null;
+    try {
+        if (userJson && userJson !== "undefined") {
+            user = JSON.parse(userJson);
+        }
+    } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+        localStorage.removeItem('user');
+    }
 
     if (!isAuthenticated) return <Navigate to="/login" />;
 
@@ -176,7 +183,7 @@ function App() {
                         <Layout>
                             <Routes>
                                 <Route path="/" element={<UserDashboard />} />
-                                <Route path="/profile" element={<DummyPage title="My Profile Phase 2" />} />
+                                <Route path="/profile" element={<UserProfile />} />
                                 <Route path="/documents" element={<DocumentUpload />} />
                                 <Route path="/events" element={<EventList />} />
                                 <Route path="/research" element={<ResearchList />} />
