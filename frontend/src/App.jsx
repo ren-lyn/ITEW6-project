@@ -151,13 +151,31 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 const DummyPage = ({ title }) => <div><h2>{title}</h2><p>This module is under construction.</p></div>;
 
 function App() {
+    const userJson = localStorage.getItem('user');
+    let user = null;
+    try {
+        if (userJson && userJson !== "undefined") {
+            user = JSON.parse(userJson);
+        }
+    } catch (e) {
+        console.error("Failed to parse user", e);
+    }
+    const role = user?.role;
+
     return (
         <Router>
             <Routes>
                 <Route path="/login" element={<Login />} />
 
+                {/* Root Redirection based on role */}
+                <Route path="/" element={
+                    <ProtectedRoute>
+                        {role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/user" replace />}
+                    </ProtectedRoute>
+                } />
+
                 {/* Admin Routes */}
-                <Route path="/*" element={
+                <Route path="/admin/*" element={
                     <ProtectedRoute allowedRoles={['admin']}>
                         <Layout>
                             <Routes>
@@ -171,7 +189,7 @@ function App() {
                                 <Route path="/scheduling" element={<ScheduleList />} />
                                 <Route path="/research" element={<ResearchList />} />
                                 <Route path="/materials" element={<MaterialList />} />
-                                <Route path="*" element={<Navigate to="/" />} />
+                                <Route path="*" element={<Navigate to="/admin" replace />} />
                             </Routes>
                         </Layout>
                     </ProtectedRoute>
@@ -187,12 +205,14 @@ function App() {
                                 <Route path="/documents" element={<DocumentUpload />} />
                                 <Route path="/events" element={<EventList />} />
                                 <Route path="/research" element={<ResearchList />} />
-                                <Route path="*" element={<Navigate to="/user/" />} />
+                                <Route path="*" element={<Navigate to="/user" replace />} />
                             </Routes>
                         </Layout>
                     </ProtectedRoute>
                 } />
 
+                {/* Catch-all global */}
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
     );

@@ -39,6 +39,10 @@ const Dashboard = () => {
         );
     }
 
+    if (!data) {
+        return <div className="text-center py-5">No dashboard data available.</div>;
+    }
+
     const { stats, charts } = data;
 
     return (
