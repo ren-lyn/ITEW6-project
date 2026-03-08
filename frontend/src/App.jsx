@@ -48,30 +48,30 @@ const Layout = ({ children }) => {
     let menuItems = [];
     if (role === 'admin') {
         menuItems = [
-            { name: 'Admin Dashboard', path: '/', icon: 'bi-grid-1x2' },
-            { name: 'Verification Approvals', path: '/verifications', icon: 'bi-check2-square' },
-            { name: 'Reports & Analytics', path: '/reports', icon: 'bi-bar-chart-steps' },
-            { name: 'Archived Profiles', path: '/archives', icon: 'bi-archive' },
-            { name: 'Students', path: '/students', icon: 'bi-people' },
-            { name: 'Faculty', path: '/faculty', icon: 'bi-person-badge' },
-            { name: 'Events', path: '/events', icon: 'bi-calendar-date' },
-            { name: 'Scheduling', path: '/scheduling', icon: 'bi-clock-history' },
-            { name: 'Research', path: '/research', icon: 'bi-journal-code' },
-            { name: 'Materials', path: '/materials', icon: 'bi-file-earmark-pdf' },
+            { name: 'Admin Dashboard', path: '/admin', icon: 'bi-grid-1x2' },
+            { name: 'Verification Approvals', path: '/admin/verifications', icon: 'bi-check2-square' },
+            { name: 'Reports & Analytics', path: '/admin/reports', icon: 'bi-bar-chart-steps' },
+            { name: 'Archived Profiles', path: '/admin/archives', icon: 'bi-archive' },
+            { name: 'Students', path: '/admin/students', icon: 'bi-people' },
+            { name: 'Faculty', path: '/admin/faculty', icon: 'bi-person-badge' },
+            { name: 'Events', path: '/admin/events', icon: 'bi-calendar-date' },
+            { name: 'Scheduling', path: '/admin/scheduling', icon: 'bi-clock-history' },
+            { name: 'Research', path: '/admin/research', icon: 'bi-journal-code' },
+            { name: 'Materials', path: '/admin/materials', icon: 'bi-file-earmark-pdf' },
         ];
     } else if (role === 'faculty') {
         menuItems = [
-            { name: 'Faculty Dashboard', path: '/', icon: 'bi-grid-1x2' },
-            { name: 'My Profile', path: '/profile', icon: 'bi-person' },
-            { name: 'Documents', path: '/documents', icon: 'bi-file-earmark' },
-            { name: 'My Syllabi/Research', path: '/research', icon: 'bi-journal-text' },
+            { name: 'Faculty Dashboard', path: '/user', icon: 'bi-grid-1x2' },
+            { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
+            { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
+            { name: 'My Syllabi/Research', path: '/user/research', icon: 'bi-journal-text' },
         ];
     } else {
         menuItems = [
-            { name: 'Student Dashboard', path: '/', icon: 'bi-grid-1x2' },
-            { name: 'My Profile', path: '/profile', icon: 'bi-person' },
-            { name: 'Documents', path: '/documents', icon: 'bi-file-earmark' },
-            { name: 'Events', path: '/events', icon: 'bi-calendar-event' },
+            { name: 'Student Dashboard', path: '/user', icon: 'bi-grid-1x2' },
+            { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
+            { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
+            { name: 'Events', path: '/user/events', icon: 'bi-calendar-event' },
         ];
     }
 
@@ -138,10 +138,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         localStorage.removeItem('user');
     }
 
-    if (!isAuthenticated) return <Navigate to="/login" />;
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
 
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/" />; // Redirect back to their dashboard if unauthorized
+        // Redirect to the appropriate dashboard instead of just / to prevent loops
+        const target = user.role === 'admin' ? '/admin' : '/user';
+        return <Navigate to={target} replace />;
     }
 
     return children;
