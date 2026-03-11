@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import ccsLogo from './assets/CCS LOGO.jpg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './index.css';
 
 // Components
+import TargetCursor from './components/TargetCursor';
 import StudentList from './components/Student/StudentList';
 import FacultyList from './components/Faculty/FacultyList';
 import EventList from './components/Event/EventList';
@@ -45,6 +47,7 @@ const Layout = ({ children }) => {
         navigate('/login');
     };
 
+
     let menuItems = [];
     if (role === 'admin') {
         menuItems = [
@@ -77,35 +80,49 @@ const Layout = ({ children }) => {
 
     return (
         <div className="d-flex flex-column min-vh-100">
-            <nav className="navbar navbar-dark sticky-top px-4 py-3" style={{ backgroundColor: 'var(--ccs-bg-dark)', zIndex: 1040 }}>
-                <Link className="navbar-brand fw-bold d-flex align-items-center" to="/">
-                    <span className="fs-5 tracking-tight ms-2">CCS PROFILER</span>
+            <nav className="navbar navbar-dark sticky-top px-4 py-3 shadow-sm" style={{ background: 'linear-gradient(135deg, #F26A21 0%, #c14d0f 100%)', borderBottom: '3px solid #a33f08', zIndex: 1040 }}>
+                <Link className="navbar-brand fw-bold d-flex align-items-center cursor-target" style={{ color: '#ffffff' }} to="/">
+                    <img src={ccsLogo} alt="CCS Logo" className="animate-spin-slow" style={{
+                        width: '45px',
+                        height: '45px',
+                        borderRadius: '50%',
+                        border: '2px solid #ffffff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }} />
+                    <span className="fs-5 tracking-tight ms-2" style={{ color: '#ffffff', fontWeight: '800' }}>CCS<span style={{ color: '#ffe6d5' }}> PROFILER</span></span>
                 </Link>
                 <div className="d-flex align-items-center">
-                    <button className="btn btn-sm btn-outline-secondary rounded-pill px-3 shadow-none border-0" onClick={handleLogout}>
+                    <button className="btn btn-sm rounded-pill px-4 shadow-none fw-bold cursor-target" onClick={handleLogout} style={{ border: '2px solid #ffffff', color: '#ffffff', backgroundColor: 'transparent' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#ffffff'; e.target.style.color = '#F26A21'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ffffff'; }}>
                         Logout
                     </button>
                 </div>
             </nav>
             <div className="container-fluid flex-grow-1">
                 <div className="row flex-nowrap h-100">
-                    <nav className="col-md-2 d-none d-md-block sidebar py-4 sticky-top shadow-sm" style={{ top: '64px', height: 'calc(100vh - 64px)', zIndex: 1030 }}>
+                    <nav className="col-md-2 d-none d-md-block sidebar py-4 sticky-top shadow-sm" style={{ backgroundColor: '#1a1a1a', top: '75px', height: 'calc(100vh - 75px)', zIndex: 1030 }}>
                         <div className="sidebar-sticky h-100 d-flex flex-column">
                             {/* Top part of sidebar removed logo */}
                             <ul className="nav flex-column px-3 flex-grow-1 mt-2">
-                                {menuItems.map((item) => (
-                                    <li className="nav-item mb-2" key={item.path}>
-                                        <Link
-                                            className={`nav-link py-2 px-3 d-flex align-items-center transition-all ${location.pathname === item.path ? 'active' : ''}`}
-                                            to={item.path}
-                                        >
-                                            <i className={`bi ${item.icon} me-3 fs-5`}></i>
-                                            <span className="fw-medium">{item.name}</span>
-                                        </Link>
-                                    </li>
-                                ))}
+                                {menuItems.map((item, index) => {
+                                    const delayClass = `delay-${Math.min((index + 1) * 100, 900)}`;
+                                    return (
+                                        <li className={`nav-item mb-2 animate-nav-item ${delayClass}`} key={item.path}>
+                                            <Link
+                                                className={`nav-link py-2 px-3 d-flex align-items-center transition-all rounded text-white cursor-target ${location.pathname === item.path ? 'active' : ''}`}
+                                                to={item.path}
+                                                style={{
+                                                    backgroundColor: location.pathname === item.path ? '#F26A21' : 'transparent',
+                                                    color: location.pathname === item.path ? '#ffffff' : '#e0e0e0'
+                                                }}
+                                            >
+                                                <i className={`bi ${item.icon} me-3 fs-5`}></i>
+                                                <span className="fw-medium">{item.name}</span>
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
                             </ul>
-                            <div className="mt-auto px-4 py-3 border-top border-secondary border-opacity-25 d-flex align-items-center">
+                            <div className="mt-auto px-4 py-3 border-top border-secondary border-opacity-50 d-flex align-items-center">
                                 <div className="bg-success text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
                                     {user?.name?.charAt(0).toUpperCase() || 'U'}
                                 </div>
@@ -166,6 +183,7 @@ function App() {
 
     return (
         <Router>
+            <TargetCursor spinDuration={2} hideDefaultCursor={true} parallaxOn={true} hoverDuration={0.2} />
             <Routes>
                 <Route path="/login" element={<Login />} />
 
