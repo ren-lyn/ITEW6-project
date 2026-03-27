@@ -19,7 +19,8 @@ const FacultyList = () => {
         try {
             const queryParams = new URLSearchParams(filters).toString();
             const response = await api.get(`/faculties?${queryParams}`);
-            setFaculties(response.data.data);
+            const data = response.data.data || response.data;
+            setFaculties(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching faculties:', error);
         } finally {
@@ -104,7 +105,7 @@ const FacultyList = () => {
             ) : (
                 <div className="row g-4">
                     {faculties.map((faculty) => (
-                        <div className="col-md-6 col-lg-4" key={faculty.id}>
+                        <div className="col-md-6 col-lg-4" key={faculty.faculty_id}>
                             <div className="card border-0 shadow-sm rounded-4 h-100 p-3 card-stats">
                                 <div className="d-flex align-items-center mb-3">
                                     <div className="bg-success bg-opacity-10 text-success rounded-circle p-3 me-3">
@@ -130,7 +131,7 @@ const FacultyList = () => {
                                 <div className="mt-auto d-flex justify-content-between align-items-center">
                                     <span className="small text-muted">ID: {faculty.employee_id}</span>
                                     <div className="d-flex gap-2">
-                                        <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.id)}>View Profile</button>
+                                        <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.faculty_id)}>View Profile</button>
                                         <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(faculty.user_id)} title="Archive"><i className="bi bi-archive"></i></button>
                                     </div>
                                 </div>

@@ -8,13 +8,16 @@ const StudentList = () => {
     const location = useLocation();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
     const [showForm, setShowForm] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState(null);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [studentToEdit, setStudentToEdit] = useState(null);
     const [filters, setFilters] = useState({
         search: new URLSearchParams(location.search).get('search') || '',
         course: '',
         year_level: '',
-        classification: ''
+        skill: '',
+        affiliation: ''
     });
 
     const fetchStudents = async () => {
@@ -22,7 +25,9 @@ const StudentList = () => {
         try {
             const queryParams = new URLSearchParams(filters).toString();
             const response = await api.get(`/students?${queryParams}`);
-            setStudents(response.data.data);
+            console.log('Fetched students raw:', response.data);
+            const data = response.data.data || response.data; // Handle both paginated and non-paginated
+            setStudents(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching students:', error);
         } finally {
@@ -57,115 +62,247 @@ const StudentList = () => {
         }
     };
 
+    const handleEdit = (e, student) => {
+        e.stopPropagation();
+        setStudentToEdit(student);
+        setShowForm(true);
+    };
+
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        if (window.confirm('Are you sure you want to remove this student record?')) {
+            try {
+                await api.delete(`/students/${id}`);
+                fetchStudents();
+            } catch (err) {
+                console.error('Delete failed:', err);
+                alert('Failed to delete student.');
+            }
+        }
+    };
+
     if (showForm) {
-        return <StudentForm onSave={() => { setShowForm(false); fetchStudents(); }} onCancel={() => setShowForm(false)} />;
+        return <StudentForm student={studentToEdit} onSave={() => { setShowForm(false); setStudentToEdit(null); fetchStudents(); }} onCancel={() => { setShowForm(false); setStudentToEdit(null); }} />;
     }
 
-    if (selectedStudentId) {
-        return <StudentDetail studentId={selectedStudentId} onBack={() => setSelectedStudentId(null)} />;
+    if (selectedStudent) {
+        return <StudentDetail studentId={selectedStudent.student_id} onBack={() => setSelectedStudent(null)} />;
     }
 
     return (
-        <div>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2 className="display-6 fw-bold mb-0">Student Profiles</h2>
-                <button className="btn btn-primary rounded-pill px-4 shadow-sm" onClick={() => setShowForm(true)}>+ Add Student</button>
+        <div className="animate-slide-up">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5">
+                <div>
+                    <h2 className="display-6 fw-bold mb-1 text-dark">Student Profiling</h2>
+                    <p className="text-muted mb-0">Manage comprehensive student data and academic history</p>
+                </div>
+                <div className="d-flex gap-2">
+                    <div className="btn-group shadow-sm rounded-pill overflow-hidden" style={{ border: '1px solid #dee2e6' }}>
+                        <button 
+                            className={`btn btn-sm ${viewMode === 'table' ? 'btn-dark' : 'btn-light border-0'}`} 
+                            onClick={() => setViewMode('table')}
+                            title="Table View"
+                        >
+                            <i className="bi bi-table"></i>
+                        </button>
+                        <button 
+                            className={`btn btn-sm ${viewMode === 'card' ? 'btn-dark' : 'btn-light border-0'}`} 
+                            onClick={() => setViewMode('card')}
+                            title="Card View"
+                        >
+                            <i className="bi bi-grid-3x3-gap"></i>
+                        </button>
+                    </div>
+                    <button className="btn btn-primary rounded-pill px-4 shadow-sm fw-bold text-white" style={{ backgroundColor: '#f37021', borderColor: '#f37021' }} onClick={() => setShowForm(true)}>
+                        <i className="bi bi-plus-lg me-2"></i> Add Student
+                    </button>
+                </div>
             </div>
 
-            <div className="card mb-4 glass-morphism border-0 shadow-sm p-3">
-                <form onSubmit={handleFilterSubmit} className="row g-3">
-                    <div className="col-md-4">
-                        <input
-                            type="text"
-                            name="search"
-                            className="form-control"
-                            placeholder="Search name or ID..."
-                            value={filters.search}
-                            onChange={handleFilterChange}
-                        />
-                    </div>
-                    <div className="col-md-2">
-                        <select name="course" className="form-select" value={filters.course} onChange={handleFilterChange}>
-                            <option value="">All Courses</option>
-                            <option value="BSCS">BSCS</option>
-                            <option value="BSIT">BSIT</option>
-                            <option value="BSIS">BSIS</option>
-                        </select>
-                    </div>
-                    <div className="col-md-2">
-                        <select name="year_level" className="form-select" value={filters.year_level} onChange={handleFilterChange}>
-                            <option value="">Year Level</option>
-                            <option value="1">1st Year</option>
-                            <option value="2">2nd Year</option>
-                            <option value="3">3rd Year</option>
-                            <option value="4">4th Year</option>
-                        </select>
-                    </div>
-                    <div className="col-md-2">
-                        <select name="classification" className="form-select" value={filters.classification} onChange={handleFilterChange}>
-                            <option value="">Classification</option>
-                            <option value="Scholar">Scholar</option>
-                            <option value="Working Student">Working Student</option>
-                            <option value="Dean's Lister">Dean's Lister</option>
-                        </select>
-                    </div>
-                    <div className="col-md-2">
-                        <button type="submit" className="btn btn-primary w-100">Apply Filters</button>
-                    </div>
-                </form>
+            <div className="card mb-5 border-0 shadow-sm rounded-4 overflow-hidden">
+                <div className="card-header bg-white py-3 border-bottom border-light">
+                    <h5 className="mb-0 fw-bold small text-uppercase tracking-wider">Search & Filters</h5>
+                </div>
+                <div className="card-body p-4 bg-light bg-opacity-50">
+                    <form onSubmit={handleFilterSubmit} className="row g-3">
+                        <div className="col-md-3">
+                            <div className="input-group shadow-sm rounded-3 overflow-hidden">
+                                <span className="input-group-text bg-white border-0"><i className="bi bi-search text-muted"></i></span>
+                                <input
+                                    type="text"
+                                    name="search"
+                                    className="form-control border-0 focus-ring-none"
+                                    placeholder="Name or ID..."
+                                    value={filters.search}
+                                    onChange={handleFilterChange}
+                                />
+                            </div>
+                        </div>
+                        <div className="col-md-2">
+                            <select name="course" className="form-select border-0 shadow-sm rounded-3" value={filters.course} onChange={handleFilterChange}>
+                                <option value="">All Courses</option>
+                                <option value="BSCS">BSCS</option>
+                                <option value="BSIT">BSIT</option>
+                                <option value="BSIS">BSIS</option>
+                            </select>
+                        </div>
+                        <div className="col-md-2">
+                            <input
+                                type="text"
+                                name="skill"
+                                className="form-control border-0 shadow-sm rounded-3"
+                                placeholder="Skill (e.g. Programming)"
+                                value={filters.skill}
+                                onChange={handleFilterChange}
+                            />
+                        </div>
+                        <div className="col-md-3">
+                            <input
+                                type="text"
+                                name="affiliation"
+                                className="form-control border-0 shadow-sm rounded-3"
+                                placeholder="Affiliation (Org/Sport)"
+                                value={filters.affiliation}
+                                onChange={handleFilterChange}
+                            />
+                        </div>
+                        <div className="col-md-2">
+                            <button type="submit" className="btn btn-dark w-100 rounded-3 shadow-none fw-bold" style={{ backgroundColor: '#212121' }}>Query</button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             {loading ? (
                 <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status text-center">
+                    <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
-            ) : (
-                <div className="card border-0 shadow-sm overflow-hidden">
+            ) : viewMode === 'table' ? (
+                <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div className="table-responsive">
-                        <table className="table table-hover mb-0">
+                        <table className="table table-hover mb-0 align-middle">
                             <thead className="bg-light">
-                                <tr>
-                                    <th>Student ID</th>
+                                <tr className="text-secondary small text-uppercase fw-bold">
+                                    <th className="ps-4">Student ID</th>
                                     <th>Full Name</th>
-                                    <th>Course</th>
-                                    <th>Year</th>
-                                    <th>GWA</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Program</th>
+                                    <th>Level</th>
+                                    <th>Skills</th>
+                                    <th className="text-end pe-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {students.map((student) => (
-                                    <tr key={student.id}>
-                                        <td className="fw-bold text-primary">{student.student_id}</td>
-                                        <td>{student.first_name} {student.last_name}</td>
-                                        <td>{student.course}</td>
-                                        <td>{student.year_level}</td>
-                                        <td>{student.overall_gwa}</td>
+                                {students.map((student) => {
+                                    const profile_picture = student.user?.profile_picture;
+                                    const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `http://localhost:8000/storage/${profile_picture}`) : null;
+                                    
+                                    return (
+                                        <tr key={student.student_id} onClick={() => setSelectedStudent(student)} className="cursor-pointer">
+                                            <td className="ps-4 fw-bold text-primary">{student.id_number || student.student_id}</td>
+                                            <td className="ps-4">
+                                                <div className="d-flex align-items-center">
+                                                    {imgUrl ? (
+                                                        <img src={imgUrl} alt="Avatar" className="rounded-circle me-3 object-fit-cover shadow-sm" style={{ width: '40px', height: '40px', minWidth: '40px' }} />
+                                                    ) : (
+                                                        <div className="bg-primary bg-opacity-10 text-primary rounded-circle me-3 d-flex align-items-center justify-content-center fw-bold" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
+                                                            {student.first_name?.[0]}{student.last_name?.[0]}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <div className="fw-bold text-dark">{(student.first_name || '') + ' ' + (student.last_name || '')}</div>
+                                                        <div className="small font-monospace text-muted">{student.email || student.user?.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        <td><span className="badge bg-primary bg-opacity-25 text-dark rounded-pill px-3 py-1 border border-primary border-opacity-10">{(student.academic_records?.[0]?.course || student.academicRecords?.[0]?.course) || 'N/A'}</span></td>
+                                        <td><div className="text-center bg-light rounded-pill px-2 py-1 small fw-bold">{(student.academic_records?.[0]?.year_level || student.academicRecords?.[0]?.year_level) || 'N/A'}</div></td>
                                         <td>
-                                            <span className={`badge ${student.overall_gwa <= 1.75 ? 'bg-success' : 'bg-info'}`}>
-                                                {student.overall_gwa <= 1.75 ? "Dean's Lister" : "Regular"}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="d-flex align-items-center gap-2">
-                                                <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => setSelectedStudentId(student.id)}>View Profile</button>
-                                                <button className="btn btn-sm btn-outline-secondary rounded-pill px-3">Edit</button>
-                                                <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(student.user_id)}><i className="bi bi-archive"></i></button>
+                                            <div className="d-flex flex-wrap gap-1">
+                                                {student.skills?.slice(0, 2).map(s => (
+                                                    <span key={s.id} className="badge bg-dark text-white fw-normal rounded-pill px-2" style={{ fontSize: '0.65rem' }}>{s.skill_name}</span>
+                                                ))}
+                                                {student.skills?.length > 2 && <span className="small text-muted" style={{ fontSize: '0.65rem' }}>+{student.skills.length - 2}</span>}
                                             </div>
                                         </td>
-                                    </tr>
-                                ))}
-                                {students.length === 0 && (
-                                    <tr>
-                                        <td colSpan="7" className="text-center py-4 text-muted">No students found matching your criteria.</td>
-                                    </tr>
-                                )}
+                                        <td className="text-end pe-4">
+                                            <div className="btn-group btn-group-sm bg-white rounded-pill shadow-sm border overflow-hidden">
+                                                <button className="btn btn-white border-0 py-1" onClick={(e) => handleEdit(e, student)}><i className="bi bi-pencil-square text-primary"></i></button>
+                                                <button className="btn btn-danger-soft border-0 py-1" onClick={(e) => handleDelete(e, student.student_id)}><i className="bi bi-trash text-danger"></i></button>
+                                            </div>
+                                        </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
+                    {students.length === 0 && (
+                        <div className="text-center py-5 bg-white">
+                            <i className="bi bi-person-x fs-1 text-muted opacity-50 mb-3 d-block"></i>
+                            <p className="text-muted fs-5">No students found matching your criteria.</p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="row g-4">
+                    {students.map((student) => {
+                        const profile_picture = student.user?.profile_picture;
+                        const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `http://localhost:8000/storage/${profile_picture}`) : null;
+                        
+                        return (
+                            <div className="col-12 col-md-6 col-lg-4 col-xl-3" key={student.student_id}>
+                                <div 
+                                    className="card border-0 shadow-sm rounded-4 h-100 p-4 hover-lift cursor-pointer position-relative d-flex flex-column" 
+                                    onClick={() => setSelectedStudent(student)}
+                                    style={{ transition: 'all 0.3s ease' }}
+                                >
+                                    <div className="d-flex justify-content-between align-items-start mb-3">
+                                        {imgUrl ? (
+                                            <img src={imgUrl} alt="Student" className="rounded-circle shadow-sm object-fit-cover" style={{ width: '56px', height: '56px' }} />
+                                        ) : (
+                                            <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4" style={{ width: '56px', height: '56px' }}>
+                                                {student.first_name?.[0]}{student.last_name?.[0]}
+                                            </div>
+                                        )}
+                                        <div className="d-flex gap-1" onClick={e => e.stopPropagation()}>
+                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" onClick={(e) => handleEdit(e, student)}><i className="bi bi-pencil-square text-primary"></i></button>
+                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" onClick={(e) => handleDelete(e, student.student_id)}><i className="bi bi-trash text-danger"></i></button>
+                                        </div>
+                                    </div>
+                                
+                                <h5 className="fw-bold mb-1 text-dark">{student.first_name} {student.last_name}</h5>
+                                <p className="small text-muted mb-3 font-monospace">ID: {student.id_number || student.student_id}</p>
+                                
+                                <div className="bg-light bg-opacity-50 rounded-4 p-3 mb-3 border border-white">
+                                    <div className="d-flex justify-content-between mb-2 small shadow-sm bg-white p-2 rounded-3">
+                                        <span className="text-muted">GWA</span>
+                                        <span className="fw-bold text-primary">{student.academic_records?.[0]?.gwa || 'N/A'}</span>
+                                    </div>
+                                    <div className="d-flex flex-wrap gap-1 mt-3">
+                                        {student.skills?.slice(0, 2).map((s, i) => (
+                                            <span key={i} className="badge bg-dark rounded-pill px-2 fw-normal" style={{ fontSize: '0.6rem' }}>{s.skill_name}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
+                                    <span className="badge bg-primary bg-opacity-25 text-dark rounded-pill px-2 py-1 small">
+                                        {(student.academic_records?.[0]?.course || student.academicRecords?.[0]?.course) || 'CCS'}
+                                    </span>
+                                    <span className="small text-muted">Year {(student.academic_records?.[0]?.year_level || student.academicRecords?.[0]?.year_level) || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        );
+                    })}
+                    {students.length === 0 && (
+                        <div className="col-12 text-center py-5">
+                             <i className="bi bi-person-x fs-1 text-muted opacity-50 mb-3 d-block"></i>
+                            <p className="text-muted fs-5">No students found matching your criteria.</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

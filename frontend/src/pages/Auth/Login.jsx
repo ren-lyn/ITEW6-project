@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
 import ccsLogo from '../../assets/CCS LOGO.jpg';
+import ccsBg from '../../assets/ccs-bg.png';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -32,30 +33,32 @@ const Login = () => {
     // We are replacing animejs with CSS animations directly since Animejs v4 caused a bug with ref iterations in React.
 
     return (
-        <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate-slide-up" style={{ maxWidth: '900px', width: '100%', opacity: 0 }}>
+        <div className="min-vh-100 d-flex align-items-center justify-content-center position-relative overflow-hidden" style={{ background: '#000' }}>
+            {/* Background Image with Layered Blurs */}
+            <div className="position-absolute top-0 start-0 w-100 h-100" style={{ 
+                backgroundImage: `url(${ccsBg})`, 
+                backgroundSize: 'cover', 
+                backgroundPosition: 'center',
+                opacity: 0.6
+            }}></div>
+            <div className="position-absolute top-0 start-0 w-100 h-100" style={{ 
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(243, 112, 33, 0.1) 50%, rgba(0,0,0,0.8) 100%)',
+                backdropFilter: 'blur(5px)'
+            }}></div>
+
+            <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate-slide-up position-relative" style={{ maxWidth: '900px', width: '100%', opacity: 0, backdropFilter: 'blur(20px)', backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="row g-0">
-                    <div className="col-md-6 bg-primary p-5 d-flex flex-column justify-content-center text-white" style={{ background: 'linear-gradient(135deg, #f37021 0%, #212121 100%)' }}>
-                        <div>
-                            <div className="mb-4 animate-slide-right delay-300">
-                                <img
-                                    src={ccsLogo}
-                                    alt="CCS Logo"
-                                    className="bg-white rounded-circle shadow animate-spin-slow"
-                                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                                />
-                            </div>
-                            <h2 className="display-5 fw-bold mb-3 animate-slide-right delay-400">CCS PROFILER</h2>
-                            <h5 className="mb-4 opacity-75 animate-slide-right delay-500">College of Computing Studies</h5>
-                            <p className="lead opacity-75 animate-slide-right delay-600">Intelligence-driven profiling system for the College of Computing Studies - Pamantasan ng Cabuyao.</p>
-                            <div className="mt-5 animate-slide-right delay-700">
-                                <ul className="list-unstyled">
-                                    <li className="mb-3 d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i> Advanced Search & Filtering</li>
-                                    <li className="mb-3 d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i> Comprehensive Student Records</li>
-                                    <li className="mb-3 d-flex align-items-center"><i className="bi bi-check-circle-fill me-2"></i> Faculty Performance Tracking</li>
-                                </ul>
-                            </div>
+                    <div className="col-md-6 p-5 d-flex flex-column justify-content-center align-items-center text-white text-center" style={{ background: 'linear-gradient(135deg, rgba(243, 112, 33, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)' }}>
+                        <div className="animate-slide-right delay-300 mb-4">
+                            <img
+                                src={ccsLogo}
+                                alt="CCS Logo"
+                                className="bg-white rounded-circle shadow"
+                                style={{ width: '120px', height: '120px', objectFit: 'cover', border: '4px solid rgba(255,255,255,0.2)' }}
+                            />
                         </div>
+                        <h2 className="display-5 fw-bold mb-2 animate-slide-right delay-400">CCS PROFILER</h2>
+                        <div className="w-25 border-bottom border-white opacity-25 mt-3 animate-slide-right delay-500"></div>
                     </div>
                     <div className="col-md-6 p-5 bg-white">
                         <div className="text-center mb-5 animate-slide-up delay-500">
@@ -72,7 +75,6 @@ const Login = () => {
                                     type="email"
                                     name="email"
                                     className="form-control form-control-lg border-0 bg-light rounded-3 px-3 shadow-none focus-ring focus-ring-warning"
-                                    placeholder="admin@ccs.edu"
                                     value={credentials.email}
                                     onChange={handleChange}
                                     required
@@ -84,7 +86,6 @@ const Login = () => {
                                     type="password"
                                     name="password"
                                     className="form-control form-control-lg border-0 bg-light rounded-3 px-3 shadow-none focus-ring focus-ring-warning"
-                                    placeholder="••••••••"
                                     value={credentials.password}
                                     onChange={handleChange}
                                     required

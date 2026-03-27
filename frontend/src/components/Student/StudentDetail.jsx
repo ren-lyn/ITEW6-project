@@ -6,6 +6,20 @@ const StudentDetail = ({ studentId, onBack }) => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [showVioForm, setShowVioForm] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [editModeAcademic, setEditModeAcademic] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [editData, setEditData] = useState({});
+
+    // Helper to format proper image url
+    const getProfileImageUrl = () => {
+        const profile_picture = student.user?.profile_picture;
+        if (!profile_picture) return null;
+        if (profile_picture.startsWith('http')) return profile_picture;
+        return `${api.defaults.baseURL.replace('/api', '')}/storage/${profile_picture}`;
+    };
+
+    
     const [newVio, setNewVio] = useState({
         violation_type: '',
         severity_level: 'Minor',
@@ -14,6 +28,26 @@ const StudentDetail = ({ studentId, onBack }) => {
         case_status: 'Ongoing',
         behavioral_remarks: ''
     });
+
+    const handleEditChange = (e) => {
+        setEditData({ ...editData, [e.target.name]: e.target.value });
+    };
+
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        setSavingProfile(true);
+        try {
+            await api.put(`/students/${studentId}`, editData);
+            setEditMode(false);
+            setEditModeAcademic(false);
+            fetchStudent();
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            alert('Failed to save profile changes.');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
 
     const fetchStudent = async () => {
         try {
@@ -56,224 +90,384 @@ const StudentDetail = ({ studentId, onBack }) => {
     const riskLevel = student.risk_indicators_json?.length > 0 ? 'High' : (student.semester_gpa < 2.0 ? 'Medium' : 'Low');
 
     return (
-        <div className="container-fluid p-0">
+        <div className="container-fluid p-0 animate-slide-up">
             <div className="d-flex align-items-center mb-4">
-                <button className="btn btn-outline-secondary rounded-pill me-3" onClick={onBack}>
-                    <i className="bi bi-arrow-left"></i> Directory
+                <button className="btn btn-outline-secondary rounded-pill me-3 border-0 shadow-sm bg-white" onClick={onBack}>
+                    <i className="bi bi-arrow-left"></i> Back to Directory
                 </button>
                 <div className="flex-grow-1">
-                    <h2 className="display-6 fw-bold mb-0">Student Intel Profile</h2>
-                    <p className="small text-muted mb-0">Confidential Profiling & Representation Intelligence</p>
+                    <h2 className="display-6 fw-bold mb-0 text-dark">Student Comprehensive Profile</h2>
+                    <p className="small text-muted mb-0 font-monospace text-uppercase tracking-wider">Profiling ID: {student.id_number || student.student_id}</p>
                 </div>
             </div>
 
             <div className="row g-4">
-                {/* Left Sidebar: Profile Card */}
+                {/* Left Sidebar: Profile Summary */}
                 <div className="col-lg-4">
                     <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                        <div className="p-5 text-center" style={{ background: 'linear-gradient(135deg, #f37021 0%, #212121 100%)' }}>
-                            <div className="bg-white rounded-circle shadow p-1 d-inline-block mx-auto position-relative" style={{ width: '160px', height: '160px' }}>
-                                <div className="w-100 h-100 rounded-circle bg-light d-flex align-items-center justify-content-center overflow-hidden">
-                                    <i className="bi bi-person-badge-fill display-1 text-secondary"></i>
-                                </div>
-                                <div className={`position-absolute bottom-0 end-0 badge rounded-pill px-3 py-2 border shadow-sm ${riskLevel === 'High' ? 'bg-danger' : (riskLevel === 'Medium' ? 'bg-warning text-dark' : 'bg-success')}`}>
-                                    Risk: {riskLevel}
+                        <div className="p-5 text-center position-relative" style={{ background: 'linear-gradient(135deg, #f37021 0%, #212121 100%)' }}>
+                            <div className="bg-white rounded-circle shadow p-1 d-inline-block mx-auto position-relative" style={{ width: '150px', height: '150px' }}>
+                                <div className="w-100 h-100 rounded-circle bg-light d-flex align-items-center justify-content-center overflow-hidden position-relative group">
+                                     {getProfileImageUrl() ? (
+                                         <img src={getProfileImageUrl()} alt="Profile" className="w-100 h-100 object-fit-cover shadow-sm" />
+                                     ) : (
+                                         <i className="bi bi-person-fill display-1 text-secondary opacity-25"></i>
+                                     )}
                                 </div>
                             </div>
                         </div>
-                        <div className="card-body text-center pt-0" style={{ marginTop: '-40px' }}>
-                            <div className="bg-white rounded-4 p-3 shadow-sm mx-auto mb-4" style={{ maxWidth: '320px', border: '1px solid #eee' }}>
-                                <h4 className="fw-bold mb-0 text-dark">{student.first_name} {student.last_name}</h4>
-                                <div className="text-primary small fw-bold">{student.student_id}</div>
-                                <div className="badge bg-light text-secondary border rounded-pill mt-2 px-3">{student.course} - Year {student.year_level}</div>
+                        <div className="card-body text-center pt-3">
+                            <div className="bg-white rounded-4 p-3 shadow-sm mx-auto mb-4 border" style={{ maxWidth: '350px' }}>
+                                <h4 className="fw-bold mb-1 text-dark text-truncate px-2">{student.first_name} {student.last_name}</h4>
+                                <div className="badge bg-primary bg-opacity-25 text-dark border border-primary border-opacity-10 rounded-pill px-3 py-1">
+                                    {student.academic_records?.[0]?.course || 'No Course'}
+                                </div>
                             </div>
 
                             <div className="text-start px-2">
+                                <h6 className="fw-bold mb-3 small text-uppercase text-muted tracking-widest border-bottom pb-2">Primary Info</h6>
                                 <div className="row g-3 mb-4">
                                     <div className="col-6">
                                         <div className="p-3 bg-light rounded-4 h-100 border border-white">
-                                            <div className="small text-muted mb-1">GWA</div>
-                                            <h4 className="fw-bold mb-0">{student.overall_gwa || 'N/A'}</h4>
+                                            <div className="small text-muted mb-1">Year Level</div>
+                                            <h5 className="fw-bold mb-0">{student.academic_records?.[0]?.year_level || 'N/A'}</h5>
                                         </div>
                                     </div>
                                     <div className="col-6">
                                         <div className="p-3 bg-light rounded-4 h-100 border border-white">
-                                            <div className="small text-muted mb-1">Status</div>
-                                            <div className={`fw-bold small ${student.academic_standing === 'Regular' ? 'text-success' : 'text-danger'}`}>{student.academic_standing || 'Regular'}</div>
+                                            <div className="small text-muted mb-1">Current GWA</div>
+                                            <h5 className="fw-bold mb-0 text-primary">{student.academic_records?.[0]?.gwa || 'N/A'}</h5>
                                         </div>
                                     </div>
                                 </div>
 
-                                <h6 className="fw-bold mb-3 border-start border-primary border-4 ps-2 small text-uppercase text-muted">Digital Assets</h6>
-                                <div className="d-flex gap-2 mb-4">
-                                    <a href={student.digital_profile_json?.github} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-dark rounded-circle"><i className="bi bi-github"></i></a>
-                                    <a href={student.digital_profile_json?.linkedin} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-primary rounded-circle"><i className="bi bi-linkedin"></i></a>
-                                    <a href="#" className="btn btn-sm btn-outline-secondary rounded-circle"><i className="bi bi-globe"></i></a>
-                                </div>
+                                <h6 className="fw-bold mb-3 small text-uppercase text-muted tracking-widest border-bottom pb-2">Contact Details</h6>
+                                <ul className="list-unstyled small mb-4">
+                                    <li className="mb-2"><i className="bi bi-envelope text-primary me-2"></i> {student.email || student.user?.email}</li>
+                                    <li className="mb-2"><i className="bi bi-telephone text-primary me-2"></i> {student.contact_number || 'N/A'}</li>
+                                    <li className="mb-2"><i className="bi bi-geo-alt text-primary me-2"></i> {student.present_address || 'N/A'}</li>
+                                </ul>
 
-                                <h6 className="fw-bold mb-3 border-start border-primary border-4 ps-2 small text-uppercase text-muted">Special Classifications</h6>
-                                <div className="d-flex flex-wrap gap-2 mb-4">
-                                    {student.classifications_json?.map((c, i) => (
-                                        <span key={i} className="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small border border-primary border-opacity-10">{c}</span>
-                                    ))}
-                                    {(!student.classifications_json || student.classifications_json.length === 0) && <span className="text-muted small italic">Standard Enrollment</span>}
+                                <h6 className="fw-bold mb-3 small text-uppercase text-muted tracking-widest border-bottom pb-2">Risk Rating</h6>
+                                <div className={`p-3 rounded-4 mb-4 border-start border-4 ${student.violations?.length > 0 ? 'bg-danger bg-opacity-10 border-danger text-danger' : 'bg-success bg-opacity-10 border-success text-success'}`}>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <span className="fw-bold small">{student.violations?.length > 0 ? 'Behavioral Review Required' : 'Excellent Performance'}</span>
+                                        <i className={`bi ${student.violations?.length > 0 ? 'bi-shield-exclamation' : 'bi-shield-check'}`}></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div className="card border-0 shadow-sm rounded-4 bg-danger bg-opacity-10 text-danger p-4 border-start border-danger border-4">
-                        <h6 className="fw-bold mb-2"><i className="bi bi-exclamation-triangle-fill me-2"></i> Risk Indicators</h6>
-                        <ul className="small mb-0 list-unstyled">
-                            {student.risk_indicators_json?.map((r, i) => <li key={i}>• {r}</li>)}
-                            {(!student.risk_indicators_json || student.risk_indicators_json.length === 0) && <li>No critical risks detected.</li>}
-                        </ul>
-                    </div>
                 </div>
 
-                {/* Right Content: Details Tabs */}
+                {/* Right Content: Comprehensive Data */}
                 <div className="col-lg-8">
-                    <div className="card border-0 shadow-sm rounded-4 h-100">
+                    <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
                         <div className="card-header bg-white border-0 pt-3">
-                            <ul className="nav nav-pills nav-fill bg-light rounded-pill p-1" style={{ fontSize: '0.85rem' }}>
+                            <ul className="nav nav-tabs nav-fill border-0 px-2" style={{ gap: '10px' }}>
                                 {[
-                                    { id: 'overview', label: 'Demographics' },
-                                    { id: 'family', label: 'Family & Living' },
-                                    { id: 'skills', label: 'Capability' },
-                                    { id: 'discipline', label: 'Behavioral' },
-                                    { id: 'medical', label: 'Medical' }
+                                    { id: 'personal', label: '1. Personal', icon: 'bi-person' },
+                                    { id: 'academic', label: '2. Academic', icon: 'bi-book' },
+                                    { id: 'non-academic', label: '3. Non-Academic', icon: 'bi-trophy' },
+                                    { id: 'violations', label: '4. Violations', icon: 'bi-exclamation-octagon' },
+                                    { id: 'skills', label: '5. Skills', icon: 'bi-lightning' },
+                                    { id: 'affiliations', label: '6. Affiliations', icon: 'bi-people' }
                                 ].map(tab => (
                                     <li className="nav-item" key={tab.id}>
                                         <button
-                                            className={`nav-link rounded-pill py-2 border-0 ${activeTab === tab.id ? 'active bg-white text-primary shadow-sm fw-bold' : 'text-secondary'}`}
+                                            className={`nav-link rounded-pill py-2 border-0 small px-3 transition-all ${activeTab === tab.id ? 'active shadow-sm fw-bold' : ''}`}
                                             onClick={() => setActiveTab(tab.id)}
+                                            style={activeTab === tab.id ? { backgroundColor: '#f37021', color: '#ffffff' } : { backgroundColor: '#f0f2f5', color: '#4a5568' }}
                                         >
-                                            {tab.label}
+                                            <i className={`bi ${tab.icon} me-1`}></i> {tab.label}
                                         </button>
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        <div className="card-body p-4 pt-1">
-                            <hr className="mb-4 text-light" />
-
-                            {activeTab === 'overview' && (
+                        <div className="card-body p-4">
+                            {activeTab === 'personal' && (
                                 <div className="fade-in">
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Identity & Demographic Info</h5>
-                                    <div className="row g-4 mb-5">
-                                        <div className="col-md-6">
-                                            <div className="p-3 border rounded-4 bg-light bg-opacity-50">
-                                                <label className="small text-muted d-block text-uppercase fw-bold mb-1">Full Legal Name</label>
-                                                <span className="fw-bold">{student.first_name} {student.last_name}</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <div className="p-3 border rounded-4 bg-light bg-opacity-50">
-                                                <label className="small text-muted d-block text-uppercase fw-bold mb-1">Gender</label>
-                                                <span className="fw-bold">{student.gender || 'N/A'}</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-3">
-                                            <div className="p-3 border rounded-4 bg-light bg-opacity-50">
-                                                <label className="small text-muted d-block text-uppercase fw-bold mb-1">Birthdate</label>
-                                                <span className="fw-bold">{student.birthdate}</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4"><label className="small text-muted d-block fw-bold small">Nickname</label><span>{student.nickname || 'N/A'}</span></div>
-                                        <div className="col-md-4"><label className="small text-muted d-block fw-bold small">Nationality</label><span>{student.nationality}</span></div>
-                                        <div className="col-md-4"><label className="small text-muted d-block fw-bold small">Civil Status</label><span>{student.civil_status}</span></div>
-                                        <div className="col-md-6"><label className="small text-muted d-block fw-bold small">Contact Number</label><span>{student.contact_number}</span></div>
-                                        <div className="col-md-6"><label className="small text-muted d-block fw-bold small">Religion</label><span>{student.religion || 'N/A'}</span></div>
-                                        <div className="col-12"><label className="small text-muted d-block fw-bold small">Present Address</label><span>{student.present_address}</span></div>
+                                    <div className="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 className="fw-bold mb-0 text-dark">
+                                            <i className="bi bi-person-fill text-primary me-2"></i> Personal Information
+                                        </h5>
+                                        <button 
+                                            className={`btn btn-sm ${editMode ? 'btn-secondary' : 'btn-outline-primary'} rounded-pill px-4 fw-bold shadow-sm`}
+                                            onClick={() => {
+                                                if (editMode) {
+                                                    setEditMode(false);
+                                                } else {
+                                                    setEditData({
+                                                        nickname: student.nickname || '',
+                                                        gender: student.gender || '',
+                                                        nationality: student.nationality || 'Filipino',
+                                                        civil_status: student.civil_status || 'Single',
+                                                        religion: student.religion || '',
+                                                        father_name: student.guardians?.father_name || '',
+                                                        mother_name: student.guardians?.mother_name || '',
+                                                        guardian_contact: student.guardians?.guardian_contact || ''
+                                                    });
+                                                    setEditMode(true);
+                                                }
+                                            }}
+                                        >
+                                            {editMode ? 'Cancel Edit' : 'Edit Profile'}
+                                        </button>
                                     </div>
+                                    
+                                    {editMode ? (
+                                        <form onSubmit={handleSaveProfile}>
+                                            <div className="row g-4 mb-4">
+                                                <div className="col-md-6">
+                                                    <label className="form-label small text-muted text-uppercase fw-bold mb-1">Nickname</label>
+                                                    <input type="text" name="nickname" className="form-control rounded-3 py-2" value={editData.nickname} onChange={handleEditChange} />
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <label className="form-label small text-muted text-uppercase fw-bold mb-1">Gender</label>
+                                                    <select name="gender" className="form-select rounded-3 py-2" value={editData.gender} onChange={handleEditChange}>
+                                                        <option value="">Select Gender</option>
+                                                        <option value="Male">Male</option>
+                                                        <option value="Female">Female</option>
+                                                        <option value="Other">Other</option>
+                                                    </select>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <label className="form-label small text-muted text-uppercase fw-bold mb-1">Nationality</label>
+                                                    <input type="text" name="nationality" className="form-control rounded-3 py-2" value={editData.nationality} onChange={handleEditChange} />
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <label className="form-label small text-muted text-uppercase fw-bold mb-1">Civil Status</label>
+                                                    <select name="civil_status" className="form-select rounded-3 py-2" value={editData.civil_status} onChange={handleEditChange}>
+                                                        <option value="Single">Single</option>
+                                                        <option value="Married">Married</option>
+                                                        <option value="Widowed">Widowed</option>
+                                                        <option value="Divorced">Divorced</option>
+                                                    </select>
+                                                </div>
+                                                <div className="col-12">
+                                                    <label className="form-label small text-muted text-uppercase fw-bold mb-1">Religion</label>
+                                                    <input type="text" name="religion" className="form-control rounded-3 py-2" value={editData.religion} onChange={handleEditChange} />
+                                                </div>
+                                            </div>
 
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Professional Representation</h5>
-                                    <div className="row g-3">
-                                        <div className="col-md-3"><label className="small text-muted d-block fw-bold small">Height</label><span>{student.height} cm</span></div>
-                                        <div className="col-md-3"><label className="small text-muted d-block fw-bold small">Weight</label><span>{student.weight} kg</span></div>
-                                        <div className="col-md-6"><label className="small text-muted d-block fw-bold small">Stage Presence</label><span className={`badge rounded-pill ${student.stage_presence ? 'bg-success' : 'bg-light text-muted'}`}>{student.stage_presence ? 'Yes' : 'No'}</span></div>
-                                        <div className="col-12"><label className="small text-muted d-block fw-bold small">Representation Willingness</label><span className={`badge bg-light border text-dark p-2`}>{student.willing_to_represent_ccs ? 'Willing to represent CCS in Pageants / Ambassador roles' : 'Focus on academic/tech roles'}</span></div>
-                                    </div>
+                                            <h6 className="fw-bold mb-3 mt-5 text-muted small text-uppercase tracking-widest">Family & Guardian Info</h6>
+                                            <div className="p-4 rounded-4 bg-light bg-opacity-50 border mb-4">
+                                                <div className="row g-4">
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted mb-1">Father's Name</label>
+                                                        <input type="text" name="father_name" className="form-control rounded-3 py-2" value={editData.father_name} onChange={handleEditChange} />
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted mb-1">Mother's Name</label>
+                                                        <input type="text" name="mother_name" className="form-control rounded-3 py-2" value={editData.mother_name} onChange={handleEditChange} />
+                                                    </div>
+                                                    <div className="col-12">
+                                                        <label className="form-label small text-muted mb-1">Guardian Contact</label>
+                                                        <input type="text" name="guardian_contact" className="form-control rounded-3 py-2" value={editData.guardian_contact} onChange={handleEditChange} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="text-end">
+                                                <button type="submit" className="btn btn-primary px-5 py-2 fw-bold" disabled={savingProfile}>
+                                                    {savingProfile ? 'Saving...' : 'Save Changes'}
+                                                </button>
+                                            </div>
+                                        </form>
+                                    ) : (
+                                        <>
+                                            <div className="row g-4 mb-4">
+                                                <div className="col-md-6"><label className="small text-muted d-block text-uppercase fw-bold mb-1">Nickname</label><span className="fw-bold">{student.nickname || 'N/A'}</span></div>
+                                                <div className="col-md-6"><label className="small text-muted d-block text-uppercase fw-bold mb-1">Gender</label><span className="fw-bold">{student.gender || 'N/A'}</span></div>
+                                                <div className="col-md-6"><label className="small text-muted d-block text-uppercase fw-bold mb-1">Nationality</label><span className="fw-bold">{student.nationality || 'Filipino'}</span></div>
+                                                <div className="col-md-6"><label className="small text-muted d-block text-uppercase fw-bold mb-1">Civil Status</label><span className="fw-bold">{student.civil_status || 'Single'}</span></div>
+                                                <div className="col-12"><label className="small text-muted d-block text-uppercase fw-bold mb-1">Religion</label><span className="fw-bold">{student.religion || 'N/A'}</span></div>
+                                            </div>
+
+                                            <h6 className="fw-bold mb-3 mt-5 text-muted small text-uppercase tracking-widest">Family & Guardian Info</h6>
+                                            <div className="p-4 rounded-4 bg-light bg-opacity-50 border">
+                                                <div className="row g-4">
+                                                    <div className="col-md-6"><label className="small text-muted d-block mb-1">Father's Name</label><div className="fw-bold">{student.guardians?.father_name || 'N/A'}</div></div>
+                                                    <div className="col-md-6"><label className="small text-muted d-block mb-1">Mother's Name</label><div className="fw-bold">{student.guardians?.mother_name || 'N/A'}</div></div>
+                                                    <div className="col-12"><label className="small text-muted d-block mb-1">Guardian Contact</label><div className="fw-bold">{student.guardians?.guardian_contact || 'N/A'}</div></div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
 
-                            {activeTab === 'family' && (
+                            {activeTab === 'academic' && (
                                 <div className="fade-in">
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Parent / Guardian Records</h5>
-                                    <div className="table-responsive mb-4">
-                                        <table className="table table-bordered rounded-4 overflow-hidden">
-                                            <thead className="bg-light small"><tr><th>Relation</th><th>Full Name</th><th>Occupation</th><th>Contact</th></tr></thead>
+                                    <div className="d-flex justify-content-between align-items-center mb-4">
+                                        <h5 className="fw-bold mb-0 text-dark">
+                                            <i className="bi bi-book-fill text-primary me-2"></i> Academic History & Records
+                                        </h5>
+                                        <button 
+                                            className={`btn btn-sm ${editModeAcademic ? 'btn-secondary' : 'btn-outline-primary'} rounded-pill px-4 fw-bold shadow-sm`}
+                                            onClick={() => {
+                                                if (editModeAcademic) {
+                                                    setEditModeAcademic(false);
+                                                } else {
+                                                    const currentRec = student.academic_records?.[0] || {};
+                                                    setEditData({
+                                                        course: currentRec.course || 'BSIT',
+                                                        year_level: currentRec.year_level || '1',
+                                                        overall_gwa: currentRec.gwa || '',
+                                                        academic_standing: currentRec.academic_standing || 'Regular'
+                                                    });
+                                                    setEditModeAcademic(true);
+                                                }
+                                            }}
+                                        >
+                                            {editModeAcademic ? 'Cancel Edit' : 'Update Current Record'}
+                                        </button>
+                                    </div>
+                                    
+                                    {editModeAcademic && (
+                                        <form onSubmit={handleSaveProfile} className="mb-4 fade-in">
+                                            <div className="p-4 rounded-4 bg-light shadow-sm border">
+                                                <h6 className="fw-bold mb-3 small text-uppercase text-primary tracking-widest"><i className="bi bi-pencil-square me-2"></i>Edit Current Semester Record</h6>
+                                                <div className="row g-4 mb-4">
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted text-uppercase fw-bold mb-1">Course/Program</label>
+                                                        <input type="text" name="course" className="form-control rounded-3 py-2 border-primary border-opacity-25" value={editData.course} onChange={handleEditChange} required />
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted text-uppercase fw-bold mb-1">Year Level</label>
+                                                        <input type="number" name="year_level" className="form-control rounded-3 py-2 border-primary border-opacity-25" value={editData.year_level} onChange={handleEditChange} required min="1" max="6" />
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted text-uppercase fw-bold mb-1">General Weighted Average (GWA)</label>
+                                                        <input type="number" step="0.01" name="overall_gwa" className="form-control rounded-3 py-2 border-primary border-opacity-25" value={editData.overall_gwa} onChange={handleEditChange} />
+                                                    </div>
+                                                    <div className="col-md-6">
+                                                        <label className="form-label small text-muted text-uppercase fw-bold mb-1">Academic Standing</label>
+                                                        <select name="academic_standing" className="form-select rounded-3 py-2 border-primary border-opacity-25" value={editData.academic_standing} onChange={handleEditChange}>
+                                                            <option value="Regular">Regular</option>
+                                                            <option value="Irregular">Irregular</option>
+                                                            <option value="Probation">Probation</option>
+                                                            <option value="Dismissed">Dismissed</option>
+                                                            <option value="Returnee">Returnee</option>
+                                                            <option value="Transferee">Transferee</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="text-end">
+                                                    <button type="submit" className="btn btn-primary px-5 py-2 fw-bold" disabled={savingProfile}>
+                                                        {savingProfile ? 'Saving...' : 'Save Academic Record'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    )}
+
+                                    <div className="table-responsive bg-white rounded-4 border overflow-hidden">
+                                        <table className="table table-hover align-middle border-0 mb-0">
+                                            <thead className="bg-light">
+                                                <tr className="small text-uppercase text-muted fw-bold">
+                                                    <th className="ps-3 border-0">Term</th>
+                                                    <th className="border-0">Course/Program</th>
+                                                    <th className="border-0 text-center">Year</th>
+                                                    <th className="border-0 text-center">GWA</th>
+                                                    <th className="border-0 text-end pe-3">Standing</th>
+                                                </tr>
+                                            </thead>
                                             <tbody>
-                                                <tr><td className="fw-bold small">Father</td><td>{student.father_name || 'N/A'}</td><td className="small">{student.father_occupation}</td><td className="small">{student.father_contact}</td></tr>
-                                                <tr><td className="fw-bold small">Mother</td><td>{student.mother_name || 'N/A'}</td><td className="small">{student.mother_occupation}</td><td className="small">{student.mother_contact}</td></tr>
-                                                <tr><td className="fw-bold small">Guardian</td><td>{student.guardian_name || 'N/A'}</td><td className="small">-</td><td className="small">{student.guardian_contact}</td></tr>
+                                                {student.academic_records?.map(rec => (
+                                                    <tr key={rec.id}>
+                                                        <td className="ps-3 small fw-bold">{rec.semester || 'Current'}</td>
+                                                        <td>{rec.course}</td>
+                                                        <td className="text-center">{rec.year_level}</td>
+                                                        <td className="text-center fw-bold text-primary">{rec.gwa}</td>
+                                                        <td className="text-end pe-3">
+                                                            <span className={`badge rounded-pill ${rec.academic_standing === 'Regular' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                                                                {rec.academic_standing}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {(!student.academic_records || student.academic_records.length === 0) && (
+                                                    <tr><td colSpan="5" className="text-center py-5 text-muted">No academic records found.</td></tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div className="row g-4">
-                                        <div className="col-md-6">
-                                            <div className="p-4 rounded-4 bg-light border-start border-info border-5">
-                                                <h6 className="fw-bold mb-1">Living Situation</h6>
-                                                <p className="mb-0 text-info fw-bold">{student.living_situation}</p>
-                                                <small className="text-muted">Primary residence during academic term.</small>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <div className="p-4 rounded-4 bg-light border-start border-warning border-5">
-                                                <h6 className="fw-bold mb-1">Parental Consent</h6>
-                                                <p className="mb-0 text-warning fw-bold">{student.guardian_consent_events ? 'GRANTED' : 'RESTRICTED'}</p>
-                                                <small className="text-muted">Permission for off-campus events participation.</small>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             )}
 
-                            {activeTab === 'skills' && (
+                            {activeTab === 'non-academic' && (
                                 <div className="fade-in">
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Technical Capabilities</h5>
-                                    <div className="d-flex flex-wrap gap-2 mb-4">
-                                        {student.skills_json?.map((s, i) => <span key={i} className="badge bg-dark px-3 py-2 rounded-3 fw-normal" style={{ fontSize: '0.9rem' }}><i className="bi bi-code-slash me-2"></i>{s}</span>)}
-                                    </div>
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Soft Skills & Intel</h5>
-                                    <div className="d-flex flex-wrap gap-2 mb-4">
-                                        {student.soft_skills_json?.map((s, i) => <span key={i} className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-3 py-2 rounded-3 fw-normal" style={{ fontSize: '0.9rem' }}><i className="bi bi-people-fill me-2"></i>{s}</span>)}
-                                    </div>
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Performance Arts & Talents</h5>
-                                    <div className="row g-2">
-                                        {student.talents_json?.map((t, i) => (
-                                            <div className="col-md-4" key={i}>
-                                                <div className="p-3 border rounded-4 text-center bg-warning bg-opacity-10 shadow-sm border-warning border-opacity-25">
-                                                    <i className="bi bi-star-fill text-warning mb-2 d-block"></i>
-                                                    <span className="fw-bold small">{t}</span>
+                                    <h5 className="fw-bold mb-4 text-dark"><i className="bi bi-trophy-fill text-primary me-2"></i> Non-Academic Activities</h5>
+                                    
+                                    <h6 className="fw-bold mb-3 small text-uppercase text-muted tracking-widest mt-4">Event Participations</h6>
+                                    <div className="row g-3 mb-5">
+                                        {student.participatingEvents?.map(ev => (
+                                            <div className="col-md-6" key={ev.id}>
+                                                <div className="p-3 bg-light rounded-4 border">
+                                                    <div className="fw-bold">{ev.event_name}</div>
+                                                    <div className="small text-muted">{ev.pivot?.role || 'Participant'}</div>
                                                 </div>
                                             </div>
                                         ))}
+                                        {(!student.participatingEvents || student.participatingEvents.length === 0) && (
+                                            <div className="col-12"><div className="p-4 text-center rounded-4 border border-dashed text-muted small">No event participations recorded.</div></div>
+                                        )}
+                                    </div>
+
+                                    <h6 className="fw-bold mb-3 small text-uppercase text-muted tracking-widest mt-4">Achievements & Awards</h6>
+                                    <div className="list-group list-group-flush border rounded-4 overflow-hidden">
+                                        {student.achievements?.map(ach => (
+                                            <div className="list-group-item p-3 d-flex justify-content-between align-items-center" key={ach.id}>
+                                                <div>
+                                                    <div className="fw-bold">{ach.achievement_title}</div>
+                                                    <div className="small text-muted">{ach.date_received}</div>
+                                                </div>
+                                                <i className="bi bi-award text-warning fs-4"></i>
+                                            </div>
+                                        ))}
+                                        {(!student.achievements || student.achievements.length === 0) && (
+                                            <div className="p-4 text-center text-muted small">No achievements listed.</div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {activeTab === 'discipline' && (
+                            {activeTab === 'violations' && (
                                 <div className="fade-in">
                                     <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <h5 className="fw-bold mb-0 border-start border-danger border-4 ps-2">Behavioral Records</h5>
-                                        <button className="btn btn-sm btn-danger rounded-pill px-4" onClick={() => setShowVioForm(!showVioForm)}>
-                                            {showVioForm ? 'Close Reporting' : 'New Incident'}
+                                        <h5 className="fw-bold mb-0 text-dark"><i className="bi bi-exclamation-octagon-fill text-danger me-2"></i> Disciplinary Violations</h5>
+                                        <button className="btn btn-sm btn-danger rounded-pill px-4 fw-bold shadow-sm" onClick={() => setShowVioForm(!showVioForm)}>
+                                            {showVioForm ? 'Cancel' : '+ Record Incident'}
                                         </button>
                                     </div>
 
                                     {showVioForm && (
-                                        <div className="card border-0 shadow-sm rounded-4 mb-4 bg-light border-start border-danger border-4">
-                                            <div className="card-body">
+                                        <div className="card border-0 shadow-sm rounded-4 mb-4 bg-danger bg-opacity-10 border-start border-danger border-4">
+                                            <div className="card-body p-4">
                                                 <form onSubmit={handleAddViolation}>
                                                     <div className="row g-3">
-                                                        <div className="col-md-6"><label className="form-label small fw-bold">Violation Type</label><input type="text" className="form-control" required value={newVio.violation_type} onChange={e => setNewVio({ ...newVio, violation_type: e.target.value })} /></div>
-                                                        <div className="col-md-3"><label className="form-label small fw-bold">Severity</label><select className="form-select" value={newVio.severity_level} onChange={e => setNewVio({ ...newVio, severity_level: e.target.value })}><option value="Minor">Minor</option><option value="Major">Major</option><option value="Grave">Grave</option></select></div>
-                                                        <div className="col-md-3"><label className="form-label small fw-bold">Date</label><input type="date" className="form-control" value={newVio.date_of_violation} onChange={e => setNewVio({ ...newVio, date_of_violation: e.target.value })} /></div>
-                                                        <div className="col-md-6"><label className="form-label small fw-bold">Sanction Given</label><input type="text" className="form-control" value={newVio.sanction_given} onChange={e => setNewVio({ ...newVio, sanction_given: e.target.value })} /></div>
-                                                        <div className="col-md-6"><label className="form-label small fw-bold">Remarks</label><input type="text" className="form-control" value={newVio.behavioral_remarks} onChange={e => setNewVio({ ...newVio, behavioral_remarks: e.target.value })} /></div>
-                                                        <div className="col-12 text-end"><button type="submit" className="btn btn-danger rounded-pill px-5 fw-bold">Lodge Violation</button></div>
+                                                        <div className="col-md-6">
+                                                            <label className="form-label small fw-bold">Incident Type</label>
+                                                            <input type="text" className="form-control border-0 shadow-sm rounded-3 px-3 py-2" required value={newVio.violation_type} onChange={e => setNewVio({ ...newVio, violation_type: e.target.value })} placeholder="e.g. Absenteeism, Misconduct" />
+                                                        </div>
+                                                        <div className="col-md-3">
+                                                            <label className="form-label small fw-bold">Severity</label>
+                                                            <select className="form-select border-0 shadow-sm rounded-3" value={newVio.severity_level} onChange={e => setNewVio({ ...newVio, severity_level: e.target.value })}>
+                                                                <option value="Minor">Minor</option>
+                                                                <option value="Major">Major</option>
+                                                                <option value="Grave">Grave</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="col-md-3">
+                                                            <label className="form-label small fw-bold">Incident Date</label>
+                                                            <input type="date" className="form-control border-0 shadow-sm rounded-3" value={newVio.date_of_violation} onChange={e => setNewVio({ ...newVio, date_of_violation: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-12 text-end">
+                                                            <button type="submit" className="btn btn-danger rounded-pill px-5 fw-bold mt-2 shadow-sm">File Report</button>
+                                                        </div>
                                                     </div>
                                                 </form>
                                             </div>
@@ -282,59 +476,74 @@ const StudentDetail = ({ studentId, onBack }) => {
 
                                     <div className="table-responsive">
                                         <table className="table table-hover align-middle">
-                                            <thead className="small text-muted border-top-0"><tr><th>Incident</th><th>Severity</th><th>Sanction</th><th>Status</th><th>Date</th></tr></thead>
+                                            <thead>
+                                                <tr className="small text-muted border-top-0">
+                                                    <th>Description</th>
+                                                    <th>Severity</th>
+                                                    <th>Date</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
                                             <tbody>
                                                 {student.violations?.map(v => (
                                                     <tr key={v.id}>
-                                                        <td><div className="fw-bold small">{v.violation_type}</div><div className="text-muted" style={{ fontSize: '0.7rem' }}>{v.behavioral_remarks || 'No remarks'}</div></td>
-                                                        <td><span className={`badge rounded-pill ${v.severity_level === 'Grave' ? 'bg-dark' : (v.severity_level === 'Major' ? 'bg-danger' : 'bg-warning text-dark')}`}>{v.severity_level}</span></td>
-                                                        <td className="small">{v.sanction_given || 'N/A'}</td>
-                                                        <td><span className="badge bg-light text-secondary border">{v.case_status}</span></td>
-                                                        <td className="small">{v.date_of_violation}</td>
+                                                        <td><div className="fw-bold small">{v.violation_type}</div></td>
+                                                        <td>
+                                                            <span className={`badge rounded-pill ${v.severity_level === 'Grave' ? 'bg-dark' : (v.severity_level === 'Major' ? 'bg-danger' : 'bg-warning text-dark')}`}>
+                                                                {v.severity_level}
+                                                            </span>
+                                                        </td>
+                                                        <td className="small">{v.date_of_violation || 'N/A'}</td>
+                                                        <td><span className="badge bg-light text-secondary border font-monospace x-small">PENDING</span></td>
                                                     </tr>
                                                 ))}
-                                                {(!student.violations || student.violations.length === 0) && <tr><td colSpan="5" className="text-center py-5 text-muted small"><i className="bi bi-shield-check display-4 d-block mb-3 text-success"></i> Exemplary record. No violations found.</td></tr>}
+                                                {(!student.violations || student.violations.length === 0) && (
+                                                    <tr><td colSpan="4" className="text-center py-5 text-muted small"><i className="bi bi-shield-check display-4 d-block mb-3 text-success opacity-50"></i> Clear Disciplinary Record</td></tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
                             )}
 
-                            {activeTab === 'medical' && (
+                            {activeTab === 'skills' && (
                                 <div className="fade-in">
-                                    <div className="row g-4 mb-4">
-                                        <div className="col-md-4">
-                                            <div className="card border-0 bg-danger bg-opacity-10 p-3 h-100 rounded-4">
-                                                <div className="text-danger small fw-bold mb-1">BLOOD TYPE</div>
-                                                <h3 className="fw-bold mb-0 text-danger">{student.medical_records?.[0]?.blood_type || 'N/A'}</h3>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-8">
-                                            <div className="card border-0 bg-success bg-opacity-10 p-3 h-100 rounded-4">
-                                                <div className="text-success small fw-bold mb-1">FIT TO JOIN ACTIVITIES</div>
-                                                <div className="d-flex align-items-center">
-                                                    <i className={`bi ${student.medical_records?.[0]?.fit_to_join_activities ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'} display-6 me-3`}></i>
+                                    <h5 className="fw-bold mb-4 text-dark"><i className="bi bi-lightning-charge-fill text-primary me-2"></i> Skills & Proficiency</h5>
+                                    <div className="row g-4">
+                                        {student.skills?.map(sk => (
+                                            <div className="col-md-6" key={sk.id}>
+                                                <div className="p-3 border rounded-4 bg-white shadow-sm d-flex justify-content-between align-items-center">
                                                     <div>
-                                                        <h5 className="fw-bold mb-0">{student.medical_records?.[0]?.fit_to_join_activities ? 'Clearance Granted' : 'Medical Restriction'}</h5>
-                                                        <span className="small text-muted">{student.medical_records?.[0]?.emergency_medical_notes || 'No critical health observations.'}</span>
+                                                        <div className="fw-bold">{sk.skill_name}</div>
+                                                        <div className="text-muted small">{sk.skill_type || 'General'}</div>
                                                     </div>
+                                                    <div className="text-primary fw-bold small">{sk.pivot?.proficiency_level || 'N/A'}</div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        ))}
+                                        {(!student.skills || student.skills.length === 0) && (
+                                            <div className="col-12 text-center py-5 text-muted">No skills listed for this profile.</div>
+                                        )}
                                     </div>
+                                </div>
+                            )}
 
-                                    <h5 className="fw-bold mb-3 border-start border-primary border-4 ps-2">Medical History & Allergies</h5>
-                                    <div className="p-4 border rounded-4 bg-light mb-4 shadow-sm">
-                                        <div className="row g-4">
-                                            <div className="col-md-6 border-end">
-                                                <label className="fw-bold small text-danger">Allergies</label>
-                                                <p className="mb-0">{student.medical_records?.[0]?.allergies || 'None reported.'}</p>
+                            {activeTab === 'affiliations' && (
+                                <div className="fade-in">
+                                    <h5 className="fw-bold mb-4 text-dark"><i className="bi bi-people-fill text-primary me-2"></i> Organizational Affiliations</h5>
+                                    <div className="row g-4">
+                                        {student.organizations?.map(org => (
+                                            <div className="col-md-6" key={org.id}>
+                                                <div className="p-4 rounded-4 bg-white border shadow-sm">
+                                                    <h5 className="fw-bold mb-1">{org.org_name}</h5>
+                                                    <div className="badge bg-light text-primary border mb-3">{org.pivot?.position || 'Member'}</div>
+                                                    <div className="small text-muted"><i className="bi bi-calendar-event me-2"></i> Active: {org.pivot?.years_active || 'N/A'}</div>
+                                                </div>
                                             </div>
-                                            <div className="col-md-6">
-                                                <label className="fw-bold small text-warning">Chronic Illness / Disability</label>
-                                                <p className="mb-0">{student.medical_records?.[0]?.chronic_illness || 'None reported.'}</p>
-                                            </div>
-                                        </div>
+                                        ))}
+                                        {(!student.organizations || student.organizations.length === 0) && (
+                                            <div className="col-12 text-center py-5 text-muted">No organizational affiliations listed.</div>
+                                        )}
                                     </div>
                                 </div>
                             )}

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@ccs.edu',
             'password' => Hash::make('password'),
             'role' => 'admin',
+            'must_change_password' => false,
         ]);
 
         $this->call([

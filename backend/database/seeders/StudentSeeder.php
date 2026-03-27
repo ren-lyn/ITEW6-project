@@ -89,7 +89,9 @@ class StudentSeeder extends Seeder
         ];
 
         foreach ($students as $data) {
-            $user = User::create($data['user']);
+            $userData = $data['user'];
+            $userData['must_change_password'] = false;
+            $user = User::create($userData);
 
             $studentData = $data['student'];
             $studentData['user_id'] = $user->id;

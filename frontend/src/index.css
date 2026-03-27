@@ -4,6 +4,7 @@
   --ccs-primary-blue: #3b3aee;
   --ccs-primary-blue-hover: #2928c2;
   --ccs-accent-orange: #f37021;
+  --ccs-primary: #f37021; /* Added primary color variable */
   --ccs-bg-light: #f4f7fe;
   --ccs-text-muted: #8f9bba;
 }
@@ -20,7 +21,7 @@ body {
 }
 
 .nav-link {
-  color: #a3aed1 !important;
+  color: #556080;
   border-radius: 0.5rem;
   transition: all 0.2s;
 }
@@ -78,16 +79,6 @@ body {
 }
 
 /* Animations */
-
-/* Logo spin */
-@keyframes spin-logo {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: spin-logo 5s linear infinite;
-}
 
 /* Fade in up */
 @keyframes slide-up-fade {

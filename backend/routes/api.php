@@ -19,7 +19,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/picture', [AuthController::class, 'uploadProfilePicture']);
     Route::get('/profile/completion', [\App\Http\Controllers\Api\ProfileCompletionController::class, 'getScore']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Document Upload Phase (Students/Faculty)
@@ -46,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Modules
     Route::apiResource('students', StudentController::class);
     Route::post('students/{student}/violations', [StudentController::class, 'addViolation']);
+
     Route::apiResource('faculties', FacultyController::class);
     Route::apiResource('events', EventController::class);
     Route::apiResource('schedules', ScheduleController::class);

@@ -14,7 +14,8 @@ class FacultySeeder extends Seeder
             'name' => 'Dr. Alan Turing',
             'email' => 'turing@faculty.edu',
             'password' => Hash::make('password'),
-            'role' => 'faculty'
+            'role' => 'faculty',
+            'must_change_password' => false,
         ]);
 
         Faculty::create([

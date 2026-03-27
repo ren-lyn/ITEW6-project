@@ -12,4 +12,10 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
+    protected $guarded = [];
+
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
 }

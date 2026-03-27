@@ -86,7 +86,106 @@ class AuthController extends Controller
 
     public function profile(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        if ($user->role === 'student') {
+            $user->load(['student.academicRecords', 'student.guardians']);
+        } elseif ($user->role === 'faculty') {
+            $user->load('faculty');
+        }
+        return response()->json($user);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $validated = $request->validate([
+            'contact_number' => 'nullable|string',
+            'address' => 'nullable|string',
+            'nickname' => 'nullable|string',
+            'gender' => 'nullable|string',
+            'nationality' => 'nullable|string',
+            'civil_status' => 'nullable|string',
+            'religion' => 'nullable|string',
+            'father_name' => 'nullable|string',
+            'mother_name' => 'nullable|string',
+            'guardian_contact' => 'nullable|string',
+        ]);
+
+        if ($user->role === 'student' && $user->student) {
+            $user->student->update([
+                'contact_number' => $validated['contact_number'] ?? $user->student->contact_number,
+                'present_address' => $validated['address'] ?? $user->student->present_address,
+                'nickname' => $validated['nickname'] ?? $user->student->nickname,
+                'gender' => $validated['gender'] ?? $user->student->gender,
+                'nationality' => $validated['nationality'] ?? $user->student->nationality,
+                'civil_status' => $validated['civil_status'] ?? $user->student->civil_status,
+                'religion' => $validated['religion'] ?? $user->student->religion,
+            ]);
+
+            // Auto-create or update guardian info
+            $user->student->guardians()->updateOrCreate(
+                ['student_id' => $user->student->student_id],
+                [
+                    'father_name' => $validated['father_name'] ?? null,
+                    'mother_name' => $validated['mother_name'] ?? null,
+                    'guardian_contact' => $validated['guardian_contact'] ?? null,
+                ]
+            );
+        } elseif ($user->role === 'faculty' && $user->faculty) {
+            $user->faculty->update([
+                'contact_number' => $validated['contact_number'] ?? $user->faculty->contact_number,
+                'address' => $validated['address'] ?? $user->faculty->address,
+            ]);
+        }
+
+        return response()->json(['message' => 'Profile updated successfully']);
+    }
+
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120'
+        ]);
+
+        $user = $request->user();
+
+        if ($request->hasFile('profile_picture')) {
+            // Delete old picture if exists
+            if ($user->profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_picture)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $user->update(['profile_picture' => $path]);
+
+            return response()->json([
+                'message' => 'Profile picture uploaded successfully',
+                'profile_picture' => asset('storage/' . $path)
+            ]);
+        }
+
+        return response()->json(['message' => 'No image uploaded'], 400);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return response()->json(['message' => 'Current password incorrect'], 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($validated['new_password']),
+            'must_change_password' => false
+        ]);
+
+        return response()->json(['message' => 'Password changed successfully']);
     }
 
     public function logout(Request $request)

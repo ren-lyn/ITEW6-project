@@ -6,7 +6,6 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './index.css';
 
 // Components
-import TargetCursor from './components/TargetCursor';
 import StudentList from './components/Student/StudentList';
 import FacultyList from './components/Faculty/FacultyList';
 import EventList from './components/Event/EventList';
@@ -25,6 +24,7 @@ import AdminArchives from './pages/Admin/AdminArchives';
 import Dashboard from './pages/Dashboard/Dashboard';
 import UserProfile from './pages/Dashboard/UserProfile';
 import Login from './pages/Auth/Login';
+import ChangePassword from './pages/Auth/ChangePassword';
 
 const Layout = ({ children }) => {
     const location = useLocation();
@@ -81,8 +81,8 @@ const Layout = ({ children }) => {
     return (
         <div className="d-flex flex-column min-vh-100">
             <nav className="navbar navbar-dark sticky-top px-4 py-3 shadow-sm" style={{ background: 'linear-gradient(135deg, #F26A21 0%, #c14d0f 100%)', borderBottom: '3px solid #a33f08', zIndex: 1040 }}>
-                <Link className="navbar-brand fw-bold d-flex align-items-center cursor-target" style={{ color: '#ffffff' }} to="/">
-                    <img src={ccsLogo} alt="CCS Logo" className="animate-spin-slow" style={{
+                <Link className="navbar-brand fw-bold d-flex align-items-center" style={{ color: '#ffffff' }} to="/">
+                    <img src={ccsLogo} alt="CCS Logo" style={{
                         width: '45px',
                         height: '45px',
                         borderRadius: '50%',
@@ -92,7 +92,7 @@ const Layout = ({ children }) => {
                     <span className="fs-5 tracking-tight ms-2" style={{ color: '#ffffff', fontWeight: '800' }}>CCS<span style={{ color: '#ffe6d5' }}> PROFILER</span></span>
                 </Link>
                 <div className="d-flex align-items-center">
-                    <button className="btn btn-sm rounded-pill px-4 shadow-none fw-bold cursor-target" onClick={handleLogout} style={{ border: '2px solid #ffffff', color: '#ffffff', backgroundColor: 'transparent' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#ffffff'; e.target.style.color = '#F26A21'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ffffff'; }}>
+                    <button className="btn btn-sm rounded-pill px-4 shadow-none fw-bold" onClick={handleLogout} style={{ border: '2px solid #ffffff', color: '#ffffff', backgroundColor: 'transparent' }} onMouseOver={(e) => { e.target.style.backgroundColor = '#ffffff'; e.target.style.color = '#F26A21'; }} onMouseOut={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ffffff'; }}>
                         Logout
                     </button>
                 </div>
@@ -108,7 +108,7 @@ const Layout = ({ children }) => {
                                     return (
                                         <li className={`nav-item mb-2 animate-nav-item ${delayClass}`} key={item.path}>
                                             <Link
-                                                className={`nav-link py-2 px-3 d-flex align-items-center transition-all rounded text-white cursor-target ${location.pathname === item.path ? 'active' : ''}`}
+                                                className={`nav-link py-2 px-3 d-flex align-items-center transition-all rounded text-white ${location.pathname === item.path ? 'active' : ''}`}
                                                 to={item.path}
                                                 style={{
                                                     backgroundColor: location.pathname === item.path ? '#F26A21' : 'transparent',
@@ -123,9 +123,18 @@ const Layout = ({ children }) => {
                                 })}
                             </ul>
                             <div className="mt-auto px-4 py-3 border-top border-secondary border-opacity-50 d-flex align-items-center">
-                                <div className="bg-success text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
-                                    {user?.name?.charAt(0).toUpperCase() || 'U'}
-                                </div>
+                                {user?.profile_picture ? (
+                                    <img 
+                                        src={user.profile_picture.startsWith('http') ? user.profile_picture : `http://localhost:8000/storage/${user.profile_picture}`} 
+                                        alt="Profile" 
+                                        className="rounded-circle me-3 object-fit-cover shadow-sm" 
+                                        style={{ width: '40px', height: '40px', minWidth: '40px' }} 
+                                    />
+                                ) : (
+                                    <div className="bg-success text-white fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
+                                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                                    </div>
+                                )}
                                 <div className="overflow-hidden">
                                     <div className="fw-bold text-white text-truncate">{user?.name || 'Guest User'}</div>
                                     <div className="text-muted small text-capitalize">{user?.role || 'Guest'}</div>
@@ -157,6 +166,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
 
+    if (user && user.must_change_password && window.location.pathname !== '/change-password') {
+        return <Navigate to="/change-password" replace />;
+    }
+
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
         // Redirect to the appropriate dashboard instead of just / to prevent loops
         const target = user.role === 'admin' ? '/admin' : '/user';
@@ -183,9 +196,9 @@ function App() {
 
     return (
         <Router>
-            <TargetCursor spinDuration={2} hideDefaultCursor={true} parallaxOn={true} hoverDuration={0.2} />
             <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/change-password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
 
                 {/* Root Redirection based on role */}
                 <Route path="/" element={

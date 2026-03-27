@@ -11,7 +11,7 @@ class FacultyController extends Controller
     {
         $query = Faculty::with(['user']);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -20,12 +20,12 @@ class FacultyController extends Controller
             });
         }
 
-        if ($request->has('department')) {
+        if ($request->filled('department')) {
             $query->where('department', $request->input('department'));
         }
 
-        if ($request->has('academic_rank')) {
-            $query->where('academic_rank', $request->input('academic_rank'));
+        if ($request->filled('rank')) {
+            $query->where('rank', $request->input('rank'));
         }
 
         return response()->json($query->paginate(15));
@@ -33,8 +33,25 @@ class FacultyController extends Controller
 
     public function store(Request $request)
     {
-        $faculty = Faculty::create($request->all());
-        return response()->json($faculty, 201);
+        return \DB::transaction(function() use ($request) {
+            // 1. Automatically Create User Account
+            $user = \App\Models\User::firstOrCreate(
+                ['email' => $request->email],
+                [
+                    'name' => $request->first_name . ' ' . $request->last_name,
+                    'password' => \Hash::make($request->employee_id), // Default password is ID
+                    'role' => 'faculty',
+                    'must_change_password' => true
+                ]
+            );
+
+            // 2. Create Faculty Record
+            $facultyData = $request->all();
+            $facultyData['user_id'] = $user->id;
+            $faculty = Faculty::create($facultyData);
+            
+            return response()->json($faculty->load('user'), 201);
+        });
     }
 
     public function show(Faculty $faculty)
@@ -44,8 +61,17 @@ class FacultyController extends Controller
 
     public function update(Request $request, Faculty $faculty)
     {
-        $faculty->update($request->all());
-        return response()->json($faculty);
+        return \DB::transaction(function() use ($request, $faculty) {
+            if ($faculty->user) {
+                $faculty->user->update([
+                    'name' => ($request->first_name ?? $faculty->first_name) . ' ' . ($request->last_name ?? $faculty->last_name),
+                    'email' => $request->email ?? $faculty->email
+                ]);
+            }
+            
+            $faculty->update($request->all());
+            return response()->json($faculty->load('user'));
+        });
     }
 
     public function destroy(Faculty $faculty)
