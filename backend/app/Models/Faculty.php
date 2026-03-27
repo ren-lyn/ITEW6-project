@@ -36,4 +36,9 @@ class Faculty extends Model
     {
         return $this->hasMany(Schedule::class, 'faculty_id');
     }
+
+    public function materials()
+    {
+        return $this->hasMany(Material::class, 'faculty_id');
+    }
 }

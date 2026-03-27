@@ -16,7 +16,7 @@ class FacultyController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                     ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('employee_id', 'like', "%{$search}%");
+                    ->orWhere('id_number', 'like', "%{$search}%");
             });
         }
 
@@ -39,7 +39,7 @@ class FacultyController extends Controller
                 ['email' => $request->email],
                 [
                     'name' => $request->first_name . ' ' . $request->last_name,
-                    'password' => \Hash::make($request->employee_id), // Default password is ID
+                    'password' => \Hash::make($request->id_number ?: $request->employee_id), // Default password is ID
                     'role' => 'faculty',
                     'must_change_password' => true
                 ]
@@ -54,9 +54,10 @@ class FacultyController extends Controller
         });
     }
 
-    public function show(Faculty $faculty)
+    public function show($id)
     {
-        return response()->json($faculty->load(['materials', 'user']));
+        $faculty = Faculty::with(['materials', 'user'])->findOrFail($id);
+        return response()->json($faculty);
     }
 
     public function update(Request $request, Faculty $faculty)

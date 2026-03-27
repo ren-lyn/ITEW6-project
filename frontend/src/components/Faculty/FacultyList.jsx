@@ -113,7 +113,7 @@ const FacultyList = () => {
                                     </div>
                                     <div>
                                         <h5 className="fw-bold mb-0">{faculty.first_name} {faculty.last_name}</h5>
-                                        <div className="text-muted small">{faculty.academic_rank}</div>
+                                        <div className="text-muted small">{faculty.rank}</div>
                                     </div>
                                 </div>
                                 <div className="mb-3">
@@ -129,7 +129,7 @@ const FacultyList = () => {
                                     </div>
                                 </div>
                                 <div className="mt-auto d-flex justify-content-between align-items-center">
-                                    <span className="small text-muted">ID: {faculty.employee_id}</span>
+                                    <span className="small text-muted">ID: {faculty.id_number || faculty.faculty_id}</span>
                                     <div className="d-flex gap-2">
                                         <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.faculty_id)}>View Profile</button>
                                         <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(faculty.user_id)} title="Archive"><i className="bi bi-archive"></i></button>

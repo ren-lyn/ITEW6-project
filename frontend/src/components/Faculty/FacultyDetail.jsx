@@ -1,56 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import FacultyForm from './FacultyForm';
 
 const FacultyDetail = ({ facultyId, onBack }) => {
     const [faculty, setFaculty] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('profile');
+    const [isEditing, setIsEditing] = useState(false);
+
+    const fetchFaculty = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get(`/faculties/${facultyId}`);
+            setFaculty(response.data);
+        } catch (error) {
+            console.error('Error fetching faculty details:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchFaculty = async () => {
-            try {
-                const response = await api.get(`/faculties/${facultyId}`);
-                setFaculty(response.data);
-            } catch (error) {
-                console.error('Error fetching faculty details:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchFaculty();
     }, [facultyId]);
 
     if (loading) return <div className="text-center py-5"><div className="spinner-border text-success"></div></div>;
     if (!faculty) return <div className="alert alert-danger">Faculty member not found.</div>;
 
+    if (isEditing) {
+        return (
+            <FacultyForm 
+                faculty={faculty} 
+                onSave={() => { setIsEditing(false); fetchFaculty(); }} 
+                onCancel={() => setIsEditing(false)} 
+            />
+        );
+    }
+
     return (
         <div className="container-fluid p-0">
-            <div className="d-flex align-items-center mb-4 px-2">
-                <button className="btn btn-outline-secondary rounded-pill me-3" onClick={onBack}>
-                    <i className="bi bi-arrow-left"></i> Directory
-                </button>
-                <div className="flex-grow-1">
-                    <h2 className="display-6 fw-bold mb-0">Institutional Faculty Profile</h2>
-                    <p className="small text-muted mb-0">Employment & Academic Performance Intelligence</p>
+            <div className="d-flex align-items-center justify-content-between mb-4 px-2">
+                <div className="d-flex align-items-center">
+                    <button className="btn btn-outline-secondary rounded-pill me-3" onClick={onBack}>
+                        <i className="bi bi-arrow-left"></i> Directory
+                    </button>
+                    <div className="flex-grow-1">
+                        <h2 className="display-6 fw-bold mb-0">Institutional Faculty Profile</h2>
+                        <div className="d-flex align-items-center gap-3">
+                            <p className="small text-muted mb-0">Employment & Academic Performance Intelligence</p>
+                            <span className="badge bg-light text-secondary border rounded-pill font-monospace small">Profiling ID: {faculty.id_number || faculty.faculty_id}</span>
+                        </div>
+                    </div>
                 </div>
+                <button className="btn btn-success rounded-pill px-4" onClick={() => setIsEditing(true)}>
+                    <i className="bi bi-pencil-square me-2"></i> Edit Profile
+                </button>
             </div>
 
             <div className="row g-4">
                 {/* Left Sidebar: Identity Card */}
                 <div className="col-lg-4">
                     <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 h-100">
-                        <div className="bg-success p-5 text-center position-relative" style={{ background: 'linear-gradient(135deg, #198754 0%, #104e31 100%)' }}>
-                            <div className="bg-white rounded-circle shadow p-1 d-inline-block mx-auto" style={{ width: '150px', height: '150px' }}>
+                        <div className="bg-success p-4 text-center position-relative" style={{ background: 'linear-gradient(135deg, #198754 0%, #104e31 100%)' }}>
+                            <div className="bg-white rounded-circle shadow p-1 d-inline-block mx-auto mb-3" style={{ width: '120px', height: '120px' }}>
                                 <div className="w-100 h-100 rounded-circle bg-light d-flex align-items-center justify-content-center overflow-hidden">
-                                    <i className="bi bi-person-workspace display-1 text-secondary"></i>
+                                    <i className="bi bi-person-workspace display-4 text-secondary"></i>
                                 </div>
                             </div>
+                            <h4 className="fw-bold mb-1 text-white">{faculty.first_name} {faculty.last_name}</h4>
+                            <div className="badge bg-white text-success rounded-pill px-3 py-2 shadow-sm">ID: {faculty.id_number || faculty.faculty_id}</div>
                         </div>
-                        <div className="card-body text-center pt-0 px-4" style={{ marginTop: '-40px' }}>
-                            <div className="bg-white rounded-4 p-3 shadow-sm mx-auto mb-4 border" style={{ maxWidth: '300px' }}>
-                                <h4 className="fw-bold mb-0 text-dark">{faculty.first_name} {faculty.last_name}</h4>
-                                <div className="text-success small fw-bold">Emp ID: {faculty.employee_id}</div>
-                                <div className="badge bg-light text-secondary border rounded-pill mt-2 px-3">{faculty.academic_rank}</div>
+                        <div className="card-body text-center px-4">
+                            <div className="bg-light rounded-4 p-2 shadow-sm mx-auto mb-4 border" style={{ maxWidth: '250px' }}>
+                                <div className="text-secondary small fw-bold text-uppercase">{faculty.rank}</div>
                             </div>
 
                             <div className="mt-4 text-start">
@@ -66,8 +88,8 @@ const FacultyDetail = ({ facultyId, onBack }) => {
 
                                 <div className="mt-4">
                                     <h6 className="fw-bold mb-3 border-start border-success border-4 ps-2 small text-uppercase text-muted">Institutional Contact</h6>
-                                    <p className="small mb-1"><i className="bi bi-envelope-fill text-success me-2"></i>{faculty.institutional_email}</p>
-                                    <p className="small mb-1"><i className="bi bi-telephone-fill text-success me-2"></i>{faculty.contact_number}</p>
+                                    <p className="small mb-1"><i className="bi bi-envelope-fill text-success me-2"></i>{faculty.institutional_email || faculty.email || 'No email provided'}</p>
+                                    <p className="small mb-1"><i className="bi bi-telephone-fill text-success me-2"></i>{faculty.contact_number || 'No contact number'}</p>
                                     <p className="small mb-0"><i className="bi bi-geo-alt-fill text-success me-2"></i>{faculty.address || 'Laguna, Philippines'}</p>
                                 </div>
                             </div>

@@ -8,7 +8,7 @@ const FacultyForm = ({ onSave, onCancel, faculty = null }) => {
     } : {
         first_name: '',
         last_name: '',
-        employee_id: '',
+        id_number: '',
         gender: 'Male',
         birthdate: '',
         email: '',
@@ -32,7 +32,7 @@ const FacultyForm = ({ onSave, onCancel, faculty = null }) => {
         setLoading(true);
         try {
             if (faculty) {
-                await api.put(`/faculties/${faculty.id}`, formData);
+                await api.put(`/faculties/${faculty.faculty_id}`, formData);
             } else {
                 await api.post('/faculties', formData);
             }
@@ -81,7 +81,7 @@ const FacultyForm = ({ onSave, onCancel, faculty = null }) => {
                     <div className="row g-3">
                         <div className="col-md-6"><label className="form-label small fw-bold text-dark">First Name</label><input type="text" name="first_name" className="form-control rounded-3 bg-light border-0" value={formData.first_name} onChange={handleInputChange} required /></div>
                         <div className="col-md-6"><label className="form-label small fw-bold text-dark">Last Name</label><input type="text" name="last_name" className="form-control rounded-3 bg-light border-0" value={formData.last_name} onChange={handleInputChange} required /></div>
-                        <div className="col-md-6"><label className="form-label small fw-bold text-dark">Employee ID</label><input type="text" name="employee_id" className="form-control rounded-3 bg-light border-0" placeholder="CCS-FAC-XXXX" value={formData.employee_id} onChange={handleInputChange} required /></div>
+                        <div className="col-md-6"><label className="form-label small fw-bold text-dark">Employee ID</label><input type="text" name="id_number" className="form-control rounded-3 bg-light border-0" placeholder="CCS-FAC-XXXX" value={formData.id_number} onChange={handleInputChange} required /></div>
                         <div className="col-md-6"><label className="form-label small fw-bold text-dark">Email Address</label><input type="email" name="email" className="form-control rounded-3 bg-light border-0" value={formData.email} onChange={handleInputChange} required /></div>
                         <div className="col-md-4">
                             <label className="form-label small fw-bold text-dark">Gender</label>

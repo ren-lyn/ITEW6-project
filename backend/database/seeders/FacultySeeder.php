@@ -20,7 +20,7 @@ class FacultySeeder extends Seeder
 
         Faculty::create([
             'user_id' => $user->id,
-            'employee_id' => 'EMP-101',
+            'id_number' => 'EMP-101',
             'first_name' => 'Alan',
             'last_name' => 'Turing',
             'gender' => 'Male',
