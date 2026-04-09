@@ -6,12 +6,16 @@ const EventList = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [eventToEdit, setEventToEdit] = useState(null);
+    const [expandedEventId, setExpandedEventId] = useState(null);
 
     const fetchEvents = async () => {
         setLoading(true);
         try {
             const response = await api.get('/events');
-            setEvents(response.data);
+            const data = response.data.data || response.data;
+            const sortedEvents = Array.isArray(data) ? data.sort((a, b) => new Date(b.event_date) - new Date(a.event_date)) : [];
+            setEvents(sortedEvents);
         } catch (error) {
             console.error('Error fetching events:', error);
         } finally {
@@ -19,12 +23,28 @@ const EventList = () => {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!window.confirm('Are you sure you want to permanently delete this event?')) return;
+        try {
+            await api.delete(`/events/${id}`);
+            fetchEvents();
+        } catch (error) {
+            console.error('Error deleting event:', error);
+            alert('Failed to delete event.');
+        }
+    };
+
+    const handleEdit = (event) => {
+        setEventToEdit(event);
+        setShowForm(true);
+    };
+
     useEffect(() => {
         fetchEvents();
     }, []);
 
     if (showForm) {
-        return <EventForm onSave={() => { setShowForm(false); fetchEvents(); }} onCancel={() => setShowForm(false)} />;
+        return <EventForm event={eventToEdit} onSave={() => { setShowForm(false); setEventToEdit(null); fetchEvents(); }} onCancel={() => { setShowForm(false); setEventToEdit(null); }} />;
     }
 
     return (
@@ -53,7 +73,7 @@ const EventList = () => {
                     </div>
                 ) : (
                     events.map((event) => (
-                        <div className="col-md-6" key={event.id}>
+                        <div className="col-md-6" key={event.event_id}>
                             <div className="card border-0 shadow-sm rounded-4 h-100 p-0 overflow-hidden card-stats">
                                 <div className="p-4">
                                     <div className="d-flex justify-content-between align-items-<ctrl94> mb-3">
@@ -65,7 +85,7 @@ const EventList = () => {
                                         </div>
                                         <div className="text-muted small fw-bold">{new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                                     </div>
-                                    <div className="text-primary x-small fw-bold mb-1 opacity-75">{event.event_id}</div>
+                                    <div className="text-primary x-small fw-bold mb-1 opacity-75">{event.event_code || `ID-${event.event_id}`}</div>
                                     <h5 className="fw-bold mb-2">{event.name}</h5>
                                     <p className="text-secondary small mb-4" style={{ minHeight: '40px' }}>{event.description}</p>
 
@@ -80,10 +100,30 @@ const EventList = () => {
                                         </div>
                                     </div>
 
-                                    <div className="d-flex gap-2">
-                                        <button className="btn btn-primary rounded-pill btn-sm px-4 fw-bold">View Assets</button>
-                                        <button className="btn btn-outline-secondary rounded-pill btn-sm px-4">Edit Info</button>
+                                    <div className="d-flex gap-2 align-items-center mt-3">
+                                        <button className="btn btn-primary rounded-pill btn-sm px-4 fw-bold shadow-sm" onClick={() => setExpandedEventId(expandedEventId === event.event_id ? null : event.event_id)}>
+                                            {expandedEventId === event.event_id ? 'Hide Assets' : 'View Assets'}
+                                        </button>
+                                        <button className="btn btn-outline-secondary rounded-pill btn-sm px-4" onClick={() => handleEdit(event)}>Edit Info</button>
+                                        <button className="btn btn-outline-danger rounded-pill btn-sm px-3 ms-auto shadow-none" onClick={() => handleDelete(event.event_id)} title="Delete Event">
+                                            <i className="bi bi-trash"></i>
+                                        </button>
                                     </div>
+
+                                    {expandedEventId === event.event_id && (
+                                        <div className="mt-4 pt-3 border-top fade-in">
+                                            <h6 className="fw-bold small text-primary mb-2 text-uppercase tracking-wider">Participant Requirements</h6>
+                                            <ul className="small text-muted mb-3 ps-3">
+                                                <li><strong>Skills:</strong> {event.participant_requirements_json?.skills || 'None'}</li>
+                                                <li><strong>Height:</strong> {event.participant_requirements_json?.height || 'No requirement'}</li>
+                                                <li><strong>No Violations:</strong> {event.participant_requirements_json?.no_violations ? 'Yes' : 'Not required'}</li>
+                                            </ul>
+                                            <div className="p-3 bg-light rounded-4 text-center border border-dashed text-secondary w-100">
+                                                <i className="bi bi-cloud-arrow-up display-6 opacity-25 d-block mb-1"></i>
+                                                <p className="small mb-0">File attachments coming soon</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

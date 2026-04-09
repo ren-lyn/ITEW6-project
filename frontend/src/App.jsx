@@ -54,7 +54,7 @@ const Layout = ({ children }) => {
             { name: 'Admin Dashboard', path: '/admin', icon: 'bi-grid-1x2' },
             { name: 'Verification Approvals', path: '/admin/verifications', icon: 'bi-check2-square' },
             { name: 'Reports & Analytics', path: '/admin/reports', icon: 'bi-bar-chart-steps' },
-            { name: 'Archived Profiles', path: '/admin/archives', icon: 'bi-archive' },
+            { name: 'Archived Profiles', path: '/admin/archives', icon: 'bi-folder' },
             { name: 'Students', path: '/admin/students', icon: 'bi-people' },
             { name: 'Faculty', path: '/admin/faculty', icon: 'bi-person-badge' },
             { name: 'Events', path: '/admin/events', icon: 'bi-calendar-date' },

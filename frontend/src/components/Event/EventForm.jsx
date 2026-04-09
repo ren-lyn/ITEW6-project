@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 import api from '../../api/axios';
 
-const EventForm = ({ onSave, onCancel }) => {
-    const [formData, setFormData] = useState({
-        event_id: '',
+const EventForm = ({ event, onSave, onCancel }) => {
+    const [formData, setFormData] = useState(event ? {
+        ...event,
+        participant_requirements_json: typeof event.participant_requirements_json === 'string' 
+            ? JSON.parse(event.participant_requirements_json) 
+            : (event.participant_requirements_json || { skills: '', height: '', no_violations: false })
+    } : {
+        event_code: '',
         name: '',
         event_type: 'Academic',
         description: '',
@@ -34,7 +39,11 @@ const EventForm = ({ onSave, onCancel }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/events', formData);
+            if (event && event.event_id) {
+                await api.put(`/events/${event.event_id}`, formData);
+            } else {
+                await api.post('/events', formData);
+            }
             if (onSave) onSave();
         } catch (error) {
             console.error('Error saving event:', error);
@@ -56,7 +65,7 @@ const EventForm = ({ onSave, onCancel }) => {
                 <div className="row g-4">
                     <div className="col-md-3">
                         <label className="form-label small fw-bold">Event ID</label>
-                        <input type="text" name="event_id" className="form-control" placeholder="E-202X-XX" value={formData.event_id} onChange={handleInputChange} required />
+                        <input type="text" name="event_code" className="form-control" placeholder="E-202X-XX" value={formData.event_code} onChange={handleInputChange} required />
                     </div>
                     <div className="col-md-9">
                         <label className="form-label small fw-bold">Event Name</label>
@@ -123,7 +132,7 @@ const EventForm = ({ onSave, onCancel }) => {
 
                 <div className="d-flex justify-content-end mt-5 pt-4 border-top">
                     <button type="button" className="btn btn-outline-secondary rounded-pill px-5 me-2" onClick={onCancel}>Cancel</button>
-                    <button type="submit" className="btn btn-warning rounded-pill px-5 fw-bold shadow-sm">Launch Event</button>
+                    <button type="submit" className="btn btn-warning rounded-pill px-5 fw-bold shadow-sm">{event ? 'Update Event' : 'Launch Event'}</button>
                 </div>
             </form>
         </div>

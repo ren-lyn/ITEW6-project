@@ -9,7 +9,8 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::with(['user', 'academicRecords', 'skills', 'organizations']);
+        $query = Student::with(['user', 'academicRecords', 'skills', 'organizations'])
+            ->whereHas('user');
 
         // Advanced Search & Filtering
         if ($request->filled('search')) {

@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../../api/axios';
+import Chart from 'chart.js/auto';
 
 const AdminReports = () => {
     const [reportType, setReportType] = useState('students');
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const chartRef = useRef(null);
+    const chartInstance = useRef(null);
 
     const fetchReport = async (type) => {
         setLoading(true);
@@ -21,6 +25,48 @@ const AdminReports = () => {
     useEffect(() => {
         fetchReport(reportType);
     }, [reportType]);
+
+    useEffect(() => {
+        if (!data || !chartRef.current) return;
+
+        if (chartInstance.current) {
+            chartInstance.current.destroy();
+        }
+
+        const ctx = chartRef.current.getContext('2d');
+        const distributionData = reportType === 'students' ? data.program_distribution : data.department_distribution;
+        
+        if (!distributionData) return;
+
+        const labels = Object.keys(distributionData);
+        const values = Object.values(distributionData);
+
+        chartInstance.current = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Population Count',
+                    data: values,
+                    backgroundColor: reportType === 'students' ? '#F26A21' : '#0d6efd',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        return () => {
+            if (chartInstance.current) chartInstance.current.destroy();
+        };
+    }, [data, reportType]);
 
     const handleExportCSV = () => {
         if (!data) return;
@@ -92,6 +138,15 @@ const AdminReports = () => {
                                     <h2 className="fw-bold mb-0 text-dark">{data?.summary?.total_archived || 0}</h2>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div className="card shadow-sm border-0 rounded-4 overflow-hidden bg-white mb-4">
+                        <div className="p-4 border-bottom bg-light">
+                            <h5 className="fw-bold mb-0">Demographic Distribution Output</h5>
+                        </div>
+                        <div className="p-4" style={{ height: '300px' }}>
+                            <canvas ref={chartRef}></canvas>
                         </div>
                     </div>
 

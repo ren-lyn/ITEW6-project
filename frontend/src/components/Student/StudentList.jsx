@@ -228,8 +228,9 @@ const StudentList = () => {
                                         </td>
                                         <td className="text-end pe-4">
                                             <div className="btn-group btn-group-sm bg-white rounded-pill shadow-sm border overflow-hidden">
-                                                <button className="btn btn-white border-0 py-1" onClick={(e) => handleEdit(e, student)}><i className="bi bi-pencil-square text-primary"></i></button>
-                                                <button className="btn btn-danger-soft border-0 py-1" onClick={(e) => handleDelete(e, student.student_id)}><i className="bi bi-trash text-danger"></i></button>
+                                                <button className="btn btn-white border-0 py-1" onClick={(e) => handleEdit(e, student)} title="Edit"><i className="bi bi-pencil-square text-primary"></i></button>
+                                                <button className="btn btn-white border-0 py-1" onClick={(e) => { e.stopPropagation(); handleArchive(student.user_id || student.user?.id); }} title="Archive"><i className="bi bi-archive text-warning" style={{ color: '#f37021' }}></i></button>
+                                                <button className="btn btn-danger-soft border-0 py-1" onClick={(e) => handleDelete(e, student.student_id)} title="Delete"><i className="bi bi-trash text-danger"></i></button>
                                             </div>
                                         </td>
                                         </tr>
@@ -267,8 +268,9 @@ const StudentList = () => {
                                             </div>
                                         )}
                                         <div className="d-flex gap-1" onClick={e => e.stopPropagation()}>
-                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" onClick={(e) => handleEdit(e, student)}><i className="bi bi-pencil-square text-primary"></i></button>
-                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" onClick={(e) => handleDelete(e, student.student_id)}><i className="bi bi-trash text-danger"></i></button>
+                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" title="Edit" onClick={(e) => handleEdit(e, student)}><i className="bi bi-pencil-square text-primary"></i></button>
+                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" title="Archive" onClick={(e) => { e.stopPropagation(); handleArchive(student.user_id || student.user?.id); }}><i className="bi bi-archive text-warning" style={{ color: '#f37021' }}></i></button>
+                                            <button className="btn btn-sm btn-light rounded-circle shadow-none" title="Delete" onClick={(e) => handleDelete(e, student.student_id)}><i className="bi bi-trash text-danger"></i></button>
                                         </div>
                                     </div>
                                 

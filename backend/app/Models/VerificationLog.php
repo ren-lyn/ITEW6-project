@@ -11,6 +11,7 @@ class VerificationLog extends Model
 
     protected $fillable = [
         'document_submission_id',
+        'user_id',
         'admin_id',
         'action',
         'remarks',

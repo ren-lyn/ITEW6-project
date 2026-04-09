@@ -84,6 +84,24 @@ const StudentDetail = ({ studentId, onBack }) => {
         }
     };
 
+    const handleArchive = async () => {
+        const userId = student.user_id || student.user?.id;
+        if (!userId) {
+            alert('User ID missing. Cannot archive.');
+            return;
+        }
+        if (!window.confirm('Are you sure you want to archive this user profile?')) return;
+
+        try {
+            await api.post(`/admin/users/${userId}/archive`);
+            alert('User archived successfully');
+            onBack(); // Return to directory
+        } catch (error) {
+            console.error('Error archiving user:', error);
+            alert(error.response?.data?.message || 'Error archiving user.');
+        }
+    };
+
     if (loading) return <div className="text-center py-5"><div className="spinner-border text-primary"></div></div>;
     if (!student) return <div className="alert alert-danger">Student not found.</div>;
 
@@ -193,28 +211,37 @@ const StudentDetail = ({ studentId, onBack }) => {
                                         <h5 className="fw-bold mb-0 text-dark">
                                             <i className="bi bi-person-fill text-primary me-2"></i> Personal Information
                                         </h5>
-                                        <button 
-                                            className={`btn btn-sm ${editMode ? 'btn-secondary' : 'btn-outline-primary'} rounded-pill px-4 fw-bold shadow-sm`}
-                                            onClick={() => {
-                                                if (editMode) {
-                                                    setEditMode(false);
-                                                } else {
-                                                    setEditData({
-                                                        nickname: student.nickname || '',
-                                                        gender: student.gender || '',
-                                                        nationality: student.nationality || 'Filipino',
-                                                        civil_status: student.civil_status || 'Single',
-                                                        religion: student.religion || '',
-                                                        father_name: student.guardians?.father_name || '',
-                                                        mother_name: student.guardians?.mother_name || '',
-                                                        guardian_contact: student.guardians?.guardian_contact || ''
-                                                    });
-                                                    setEditMode(true);
-                                                }
-                                            }}
-                                        >
-                                            {editMode ? 'Cancel Edit' : 'Edit Profile'}
-                                        </button>
+                                        <div className="d-flex gap-2">
+                                            <button 
+                                                className="btn btn-sm btn-outline-warning rounded-pill px-4 fw-bold shadow-sm"
+                                                style={{ borderColor: '#f37021', color: '#f37021' }}
+                                                onClick={handleArchive}
+                                            >
+                                                <i className="bi bi-archive me-2"></i> Archive Profile
+                                            </button>
+                                            <button 
+                                                className={`btn btn-sm ${editMode ? 'btn-secondary' : 'btn-outline-primary'} rounded-pill px-4 fw-bold shadow-sm`}
+                                                onClick={() => {
+                                                    if (editMode) {
+                                                        setEditMode(false);
+                                                    } else {
+                                                        setEditData({
+                                                            nickname: student.nickname || '',
+                                                            gender: student.gender || '',
+                                                            nationality: student.nationality || 'Filipino',
+                                                            civil_status: student.civil_status || 'Single',
+                                                            religion: student.religion || '',
+                                                            father_name: student.guardians?.father_name || '',
+                                                            mother_name: student.guardians?.mother_name || '',
+                                                            guardian_contact: student.guardians?.guardian_contact || ''
+                                                        });
+                                                        setEditMode(true);
+                                                    }
+                                                }}
+                                            >
+                                                {editMode ? 'Cancel Edit' : 'Edit Profile'}
+                                            </button>
+                                        </div>
                                     </div>
                                     
                                     {editMode ? (

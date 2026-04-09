@@ -9,7 +9,7 @@ class ScheduleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Schedule::with(['user', 'event']);
+        $query = Schedule::with(['faculty.user', 'event']);
 
         if ($request->has('type')) {
             $query->where('schedule_type', $request->input('type'));
@@ -26,7 +26,7 @@ class ScheduleController extends Controller
 
     public function show(Schedule $schedule)
     {
-        return response()->json($schedule->load(['user', 'event']));
+        return response()->json($schedule->load(['faculty.user', 'event']));
     }
 
     public function update(Request $request, Schedule $schedule)

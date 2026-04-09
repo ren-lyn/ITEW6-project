@@ -132,7 +132,9 @@ const FacultyList = () => {
                                     <span className="small text-muted">ID: {faculty.id_number || faculty.faculty_id}</span>
                                     <div className="d-flex gap-2">
                                         <button className="btn btn-sm btn-outline-success rounded-pill px-3" onClick={() => setSelectedFacultyId(faculty.faculty_id)}>View Profile</button>
-                                        <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleArchive(faculty.user_id)} title="Archive"><i className="bi bi-archive"></i></button>
+                                        <button className="btn btn-sm btn-outline-warning rounded-pill px-3" style={{ borderColor: '#f37021', color: '#f37021' }} onClick={(e) => { e.stopPropagation(); handleArchive(faculty.user_id); }} title="Archive">
+                                            <i className="bi bi-archive" style={{ color: '#f37021' }}></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -8,7 +8,11 @@ class Event extends Model
 {
     use HasFactory;
     protected $primaryKey = 'event_id';
-    protected $guarded = ['event_id'];
+    protected $guarded = []; // Changed to empty since event_id might be provided or handled
+
+    protected $casts = [
+        'participant_requirements_json' => 'array',
+    ];
 
     public function participants()
     {

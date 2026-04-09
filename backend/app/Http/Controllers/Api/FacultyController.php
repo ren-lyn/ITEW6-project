@@ -9,7 +9,7 @@ class FacultyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Faculty::with(['user']);
+        $query = Faculty::with(['user'])->whereHas('user');
 
         if ($request->filled('search')) {
             $search = $request->input('search');

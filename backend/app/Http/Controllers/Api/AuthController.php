@@ -75,6 +75,19 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
+        // Check if user is approved
+        if ($user->status === 'pending') {
+            return response()->json([
+                'message' => 'Your account is pending verification. Please wait for an administrator to approve your registration.'
+            ], 403);
+        }
+
+        if ($user->status === 'rejected') {
+            return response()->json([
+                'message' => 'Your account registration has been rejected. Please contact support for more information.'
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
