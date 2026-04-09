@@ -43,6 +43,7 @@ class ReportController extends Controller
                     'name' => $s->user->name ?? 'N/A',
                     'email' => $s->user->email ?? 'N/A',
                     'course' => $s->academicRecords->first()->course ?? 'Unassigned',
+                    'gwa' => $s->academicRecords->first()->gwa ?? 'N/A',
                     'joined_at' => $s->created_at->format('Y-m-d')
                 ];
             })

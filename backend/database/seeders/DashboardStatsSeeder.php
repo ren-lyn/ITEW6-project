@@ -22,6 +22,7 @@ class DashboardStatsSeeder extends Seeder
                     'student_id' => $student->student_id,
                     'course' => $courses[array_rand($courses)],
                     'year_level' => rand(1, 4),
+                    'gwa' => number_format(rand(100, 300) / 100, 2),
                     'academic_standing' => rand(1, 100) > 80 ? 'Probation' : $standings[array_rand($standings)],
                 ]);
             }

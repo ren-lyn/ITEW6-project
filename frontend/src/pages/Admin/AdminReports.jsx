@@ -162,7 +162,10 @@ const AdminReports = () => {
                                         <th className="px-4 py-3 text-muted small text-uppercase fw-bold border-bottom-0">Name</th>
                                         <th className="py-3 text-muted small text-uppercase fw-bold border-bottom-0">Email</th>
                                         {reportType === 'students' ? (
-                                            <th className="py-3 text-muted small text-uppercase fw-bold border-bottom-0">Program / Course</th>
+                                            <>
+                                                <th className="py-3 text-muted small text-uppercase fw-bold border-bottom-0">Program / Course</th>
+                                                <th className="py-3 text-muted small text-uppercase fw-bold border-bottom-0">GWA</th>
+                                            </>
                                         ) : (
                                             <>
                                                 <th className="py-3 text-muted small text-uppercase fw-bold border-bottom-0">Department</th>
@@ -178,7 +181,10 @@ const AdminReports = () => {
                                             <td className="px-4 py-3 fw-bold">{item.name}</td>
                                             <td className="py-3 text-muted">{item.email}</td>
                                             {reportType === 'students' ? (
-                                                <td className="py-3"><span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3">{item.course}</span></td>
+                                                <>
+                                                    <td className="py-3"><span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3">{item.course}</span></td>
+                                                    <td className="py-3"><span className="fw-bold text-primary">{item.gwa}</span></td>
+                                                </>
                                             ) : (
                                                 <>
                                                     <td className="py-3"><span className="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 rounded-pill px-3">{item.department}</span></td>
