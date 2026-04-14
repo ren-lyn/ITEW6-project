@@ -4,22 +4,28 @@ import { Link } from 'react-router-dom';
 
 const UserDashboard = () => {
     const [scoreData, setScoreData] = useState({ completion_score: 0, missing_fields: [] });
+    const [facultySchedules, setFacultySchedules] = useState([]);
     const [loading, setLoading] = useState(true);
     const userJson = localStorage.getItem('user');
     const user = userJson ? JSON.parse(userJson) : null;
 
     useEffect(() => {
-        const fetchScore = async () => {
+        const fetchData = async () => {
             try {
-                const response = await api.get('/profile/completion');
-                setScoreData(response.data);
+                const scoreRes = await api.get('/profile/completion');
+                setScoreData(scoreRes.data);
+
+                if (user?.role === 'faculty') {
+                    const scheduleRes = await api.get('/faculty/schedules');
+                    setFacultySchedules(scheduleRes.data);
+                }
             } catch (error) {
-                console.error('Error fetching profile completion:', error);
+                console.error('Error fetching dashboard data:', error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchScore();
+        fetchData();
     }, []);
 
     if (loading) {
@@ -83,7 +89,7 @@ const UserDashboard = () => {
             </div>
 
             <div className="row g-4">
-                <div className="col-md-6">
+                <div className="col-md-4">
                     <Link to="/user/profile" className="text-decoration-none transition-all">
                         <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
                             <div className="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
@@ -91,13 +97,13 @@ const UserDashboard = () => {
                             </div>
                             <div>
                                 <h6 className="fw-bold text-dark mb-1">My Profile</h6>
-                                <p className="small text-muted mb-0">View and update your information</p>
+                                <p className="small text-muted mb-0">Manage information</p>
                             </div>
                         </div>
                     </Link>
                 </div>
 
-                <div className="col-md-6">
+                <div className="col-md-4">
                     <Link to="/user/documents" className="text-decoration-none transition-all">
                         <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
                             <div className="bg-success bg-opacity-10 text-success rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
@@ -105,12 +111,108 @@ const UserDashboard = () => {
                             </div>
                             <div>
                                 <h6 className="fw-bold text-dark mb-1">Documents</h6>
-                                <p className="small text-muted mb-0">Upload and manage your files</p>
+                                <p className="small text-muted mb-0">Upload requirements</p>
                             </div>
                         </div>
                     </Link>
                 </div>
+
+                {user?.role === 'student' && (
+                    <>
+                        <div className="col-md-4">
+                            <Link to="/user/schedule" className="text-decoration-none transition-all">
+                                <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
+                                    <div className="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
+                                        <i className="bi bi-clock-history fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 className="fw-bold text-dark mb-1">Class Schedule</h6>
+                                        <p className="small text-muted mb-0">View weekly classes</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+
+                        <div className="col-md-6">
+                            <Link to="/user/courses" className="text-decoration-none transition-all">
+                                <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
+                                    <div className="bg-warning bg-opacity-10 text-warning rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
+                                        <i className="bi bi-journal-check fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 className="fw-bold text-dark mb-1">Enrolled Courses</h6>
+                                        <p className="small text-muted mb-0">Current semester subjects</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+
+                        <div className="col-md-6">
+                            <Link to="/user/registration" className="text-decoration-none transition-all">
+                                <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
+                                    <div className="bg-danger bg-opacity-10 text-danger rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
+                                        <i className="bi bi-file-earmark-medical fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 className="fw-bold text-dark mb-1">Registration Form</h6>
+                                        <p className="small text-muted mb-0">View or print your COR</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        </div>
+                    </>
+                )}
+                {user?.role === 'faculty' && (
+                    <div className="col-md-6">
+                        <Link to="/user/attendance/import" className="text-decoration-none transition-all">
+                            <div className="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white d-flex flex-row align-items-center card-stats">
+                                <div className="bg-info bg-opacity-10 text-info rounded-3 d-flex align-items-center justify-content-center me-4" style={{ width: '56px', height: '56px' }}>
+                                    <i className="bi bi-calendar-check fs-4"></i>
+                                </div>
+                                <div className="pt-2">
+                                    <h6 className="fw-bold text-dark mb-1">Import Attendance</h6>
+                                    <p className="small text-muted mb-0">Upload student records via CSV</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+                )}
             </div>
+
+            {user?.role === 'faculty' && (
+                <div className="mt-5">
+                    <h5 className="fw-bold text-dark mb-4 d-flex align-items-center">
+                        <i className="bi bi-journal-bookmark text-primary me-2"></i>
+                        Handled Courses & Sections
+                    </h5>
+                    {facultySchedules.length === 0 ? (
+                        <div className="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+                            <i className="bi bi-calendar-x text-muted fs-1 mb-3"></i>
+                            <p className="text-muted mb-0">No assigned courses or sections found.</p>
+                        </div>
+                    ) : (
+                        <div className="row g-3">
+                            {facultySchedules.map((sched) => (
+                                <div key={sched.schedule_id} className="col-md-4">
+                                    <div className="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 border-start border-4 border-primary">
+                                        <div className="d-flex justify-content-between align-items-start mb-2">
+                                            <span className="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">
+                                                {sched.section}
+                                            </span>
+                                            <span className="small text-muted">{sched.subject_code}</span>
+                                        </div>
+                                        <h6 className="fw-bold text-dark mb-1">{sched.title || sched.subject}</h6>
+                                        <div className="d-flex align-items-center mt-3 text-muted extra-small">
+                                            <i className="bi bi-clock me-1"></i>
+                                            {sched.days_of_week} | {sched.start_time} - {sched.end_time}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

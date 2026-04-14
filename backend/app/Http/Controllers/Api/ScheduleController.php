@@ -40,4 +40,11 @@ class ScheduleController extends Controller
         $schedule->delete();
         return response()->json(['message' => 'Deleted']);
     }
+
+    public function getFacultySchedules(Request $request)
+    {
+        $faculty = auth()->user()->faculty;
+        if (!$faculty) return response()->json([]);
+        return response()->json($faculty->schedules()->orderBy('section')->get());
+    }
 }

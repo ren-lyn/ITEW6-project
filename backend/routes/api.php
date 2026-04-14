@@ -25,6 +25,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Student Portal Features
+    Route::get('/student/schedule', [\App\Http\Controllers\Api\StudentPortalController::class, 'getSchedule']);
+    Route::get('/student/courses', [\App\Http\Controllers\Api\StudentPortalController::class, 'getEnrolledCourses']);
+    Route::get('/student/registration-form', [\App\Http\Controllers\Api\StudentPortalController::class, 'getRegistrationData']);
+
     // Document Upload Phase (Students/Faculty)
     Route::get('/documents', [DocumentController::class, 'index']);
     Route::post('/documents', [DocumentController::class, 'upload']);
@@ -52,7 +57,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('faculties', FacultyController::class);
     Route::apiResource('events', EventController::class);
+    Route::get('/faculty/schedules', [ScheduleController::class, 'getFacultySchedules']);
     Route::apiResource('schedules', ScheduleController::class);
     Route::apiResource('research', ResearchController::class);
     Route::apiResource('materials', MaterialController::class);
+
+    // Attendance
+    Route::get('/attendance', [\App\Http\Controllers\Api\AttendanceController::class, 'index']);
+    Route::post('/attendance/import', [\App\Http\Controllers\Api\AttendanceController::class, 'import']);
+    Route::get('/attendance/analytics', [\App\Http\Controllers\Api\AttendanceController::class, 'getRiskAnalytics']);
+    Route::get('/student/attendance', [\App\Http\Controllers\Api\AttendanceController::class, 'getStudentAttendance']);
 });

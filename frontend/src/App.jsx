@@ -19,6 +19,14 @@ import DocumentUpload from './pages/Document/DocumentUpload';
 import VerificationList from './pages/Admin/VerificationList';
 import AdminReports from './pages/Admin/AdminReports';
 import AdminArchives from './pages/Admin/AdminArchives';
+import StudentSchedule from './pages/Student/StudentSchedule';
+import EnrolledCourses from './pages/Student/EnrolledCourses';
+import RegistrationForm from './pages/Student/RegistrationForm';
+import StudentAttendance from './pages/Student/StudentAttendance';
+import AttendanceImport from './pages/Faculty/AttendanceImport';
+import AttendanceSections from './pages/Faculty/AttendanceSections';
+import AttendanceHistory from './pages/Faculty/AttendanceHistory';
+import AttendanceAnalytics from './pages/Faculty/AttendanceAnalytics';
 
 // Pages
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -29,6 +37,12 @@ import ChangePassword from './pages/Auth/ChangePassword';
 const Layout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
+    const [openMenus, setOpenMenus] = React.useState({ 'Attendance': true });
+    
+    const toggleMenu = (name) => {
+        setOpenMenus(prev => ({ ...prev, [name]: !prev[name] }));
+    };
+
     const userJson = localStorage.getItem('user');
     let user = null;
     try {
@@ -67,12 +81,25 @@ const Layout = ({ children }) => {
             { name: 'Faculty Dashboard', path: '/user', icon: 'bi-grid-1x2' },
             { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
             { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
+            { 
+                name: 'Attendance', 
+                icon: 'bi-calendar-check',
+                children: [
+                    { name: 'IT Department', path: '/user/attendance/IT' },
+                    { name: 'IS Department', path: '/user/attendance/IS' },
+                    { name: 'CS Department', path: '/user/attendance/CS' },
+                ]
+            },
             { name: 'My Syllabi/Research', path: '/user/research', icon: 'bi-journal-text' },
         ];
     } else {
         menuItems = [
             { name: 'Student Dashboard', path: '/user', icon: 'bi-grid-1x2' },
             { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
+            { name: 'Class Schedule', path: '/user/schedule', icon: 'bi-clock' },
+            { name: 'Enrolled Courses', path: '/user/courses', icon: 'bi-journal-check' },
+            { name: 'Registration Form', path: '/user/registration', icon: 'bi-file-earmark-medical' },
+            { name: 'My Attendance', path: '/user/attendance', icon: 'bi-calendar-check' },
             { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
             { name: 'Events', path: '/user/events', icon: 'bi-calendar-event' },
         ];
@@ -105,19 +132,56 @@ const Layout = ({ children }) => {
                             <ul className="nav flex-column px-3 flex-grow-1 mt-2">
                                 {menuItems.map((item, index) => {
                                     const delayClass = `delay-${Math.min((index + 1) * 100, 900)}`;
+                                    const hasChildren = item.children && item.children.length > 0;
+                                    const isOpen = openMenus[item.name];
+
                                     return (
-                                        <li className={`nav-item mb-2 animate-nav-item ${delayClass}`} key={item.path}>
-                                            <Link
-                                                className={`nav-link py-2 px-3 d-flex align-items-center transition-all rounded text-white ${location.pathname === item.path ? 'active' : ''}`}
-                                                to={item.path}
-                                                style={{
-                                                    backgroundColor: location.pathname === item.path ? '#F26A21' : 'transparent',
-                                                    color: location.pathname === item.path ? '#ffffff' : '#e0e0e0'
-                                                }}
-                                            >
-                                                <i className={`bi ${item.icon} me-3 fs-5`}></i>
-                                                <span className="fw-medium">{item.name}</span>
-                                            </Link>
+                                        <li className={`nav-item mb-1 animate-nav-item ${delayClass}`} key={item.name}>
+                                            {hasChildren ? (
+                                                <>
+                                                    <div 
+                                                        className="nav-link py-2 px-3 d-flex align-items-center justify-content-between transition-all rounded text-white-50 small fw-bold text-uppercase ls-wider mb-1 cursor-pointer"
+                                                        onClick={() => toggleMenu(item.name)}
+                                                        style={{ cursor: 'pointer' }}
+                                                    >
+                                                        <div className="d-flex align-items-center">
+                                                            <i className={`bi ${item.icon} me-3`}></i>
+                                                            {item.name}
+                                                        </div>
+                                                        <i className={`bi bi-chevron-${isOpen ? 'down' : 'right'} extra-small`}></i>
+                                                    </div>
+                                                    {isOpen && (
+                                                        <ul className="nav flex-column ms-3 ps-2 border-start border-secondary border-opacity-25 mb-2">
+                                                            {item.children.map(child => (
+                                                                <li className="nav-item mb-1" key={child.path}>
+                                                                    <Link
+                                                                        className={`nav-link py-1 px-3 d-flex align-items-center transition-all rounded text-white ${location.pathname === child.path ? 'active' : 'opacity-75 hov-opacity-100'}`}
+                                                                        to={child.path}
+                                                                        style={{
+                                                                            backgroundColor: location.pathname === child.path ? '#F26A21' : 'transparent',
+                                                                            fontSize: '0.9rem'
+                                                                        }}
+                                                                    >
+                                                                        {child.name}
+                                                                    </Link>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <Link
+                                                    className={`nav-link py-2 px-3 d-flex align-items-center transition-all rounded text-white ${location.pathname === item.path ? 'active' : ''}`}
+                                                    to={item.path}
+                                                    style={{
+                                                        backgroundColor: location.pathname === item.path ? '#F26A21' : 'transparent',
+                                                        color: location.pathname === item.path ? '#ffffff' : '#e0e0e0'
+                                                    }}
+                                                >
+                                                    <i className={`bi ${item.icon} me-3 fs-5`}></i>
+                                                    <span className="fw-medium">{item.name}</span>
+                                                </Link>
+                                            )}
                                         </li>
                                     );
                                 })}
@@ -236,6 +300,14 @@ function App() {
                                 <Route path="/" element={<UserDashboard />} />
                                 <Route path="/profile" element={<UserProfile />} />
                                 <Route path="/documents" element={<DocumentUpload />} />
+                                <Route path="/schedule" element={<StudentSchedule />} />
+                                <Route path="/courses" element={<EnrolledCourses />} />
+                                <Route path="/registration" element={<RegistrationForm />} />
+                                <Route path="/attendance" element={<StudentAttendance />} />
+                                <Route path="/attendance/:course" element={<AttendanceSections />} />
+                                <Route path="/attendance/import/:section" element={<AttendanceImport />} />
+                                <Route path="/attendance/history/:section" element={<AttendanceHistory />} />
+                                <Route path="/attendance/analytics/:section" element={<AttendanceAnalytics />} />
                                 <Route path="/events" element={<EventList />} />
                                 <Route path="/research" element={<ResearchList />} />
                                 <Route path="*" element={<Navigate to="/user" replace />} />
