@@ -30,7 +30,7 @@ class DashboardStatsSeeder extends Seeder
             if (!\App\Models\BehavioralProfile::where('student_id', $student->student_id)->exists()) {
                 \App\Models\BehavioralProfile::create([
                     'student_id' => $student->student_id,
-                    'attendance_percentage' => rand(1, 100) > 85 ? rand(50, 74) : rand(75, 100),
+                    'counselor_remarks' => rand(1, 100) > 85 ? 'Needs monitoring for behavior' : null,
                 ]);
             }
 

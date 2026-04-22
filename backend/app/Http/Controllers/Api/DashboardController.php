@@ -36,7 +36,7 @@ class DashboardController extends Controller
         // Risk indicators summary (Improved logic)
         $riskSummary = [
             'academic_risk' => AcademicRecord::where('academic_standing', 'Probation')->count(),
-            'attendance_risk' => BehavioralProfile::where('attendance_percentage', '<', 75)->count(),
+            'behavioral_risk' => BehavioralProfile::whereNotNull('counselor_remarks')->count(),
             'financial_concern' => Guardian::where('family_income_bracket', 'Below 10,000')->orWhere('family_income_bracket', 'Below PHP 10,000')->count(),
         ];
 

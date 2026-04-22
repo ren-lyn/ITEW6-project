@@ -49,7 +49,7 @@ class ComprehensiveProfilingSeeder extends Seeder
             \App\Models\BehavioralProfile::updateOrCreate(
                 ['student_id' => $student->student_id],
                 [
-                    'attendance_percentage' => $faker->numberBetween(75, 100),
+
                     'punctuality_rating' => $faker->randomFloat(1, 1, 5),
                     'personality_type' => $faker->randomElement(['Introvert', 'Extrovert', 'Ambivert']),
                     'behavioral_remarks' => $faker->sentence(),

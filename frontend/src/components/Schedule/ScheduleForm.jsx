@@ -19,11 +19,18 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
     const [faculty, setFaculty] = useState([]);
     const [events, setEvents] = useState([]);
 
+    const userJson = localStorage.getItem('user');
+    let user = null;
+    try {
+        if (userJson && userJson !== "undefined") user = JSON.parse(userJson);
+    } catch (e) {}
+    const role = user?.role;
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [facRes, evRes] = await Promise.all([
-                    api.get('/faculty'),
+                    api.get('/faculties'),
                     api.get('/events')
                 ]);
                 setFaculty(facRes.data.data || facRes.data);
@@ -64,17 +71,17 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
                     <div className="modal-content rounded-4 overflow-hidden border-0 shadow" style={{ backgroundColor: '#ecdabd' }}>
 
                         <div className="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                            <h5 className="modal-title fw-bold text-dark fs-4" style={{ letterSpacing: '0.5px' }}>ASSIGN FACULTY TO SECTION</h5>
+                            <h5 className="modal-title fw-bold text-dark fs-4" style={{ letterSpacing: '0.5px' }}>{role === 'dean' ? 'ASSIGN SECTION' : 'SCHEDULE DETAILS'}</h5>
                             <button type="button" className="btn-close shadow-none" onClick={onCancel} style={{ filter: 'opacity(0.5)' }}></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="modal-body p-4 pt-3 pb-5">
                             <div className="row g-3">
                                 
-                                <div className="col-md-6">
+                                <div className={role === 'dean' ? "col-md-6" : "col-md-12"}>
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Subject / Course</label>
                                     <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
-                                        <select name="subject_code" className="form-select border-0 shadow-none bg-transparent py-2 w-100" value={formData.subject_code || ''} onChange={handleChange} required>
+                                        <select name="subject_code" className="form-select border-0 shadow-none bg-transparent py-2 w-100" value={formData.subject_code || ''} onChange={handleChange} required disabled={role === 'dean'}>
                                             <option value="">Select Course</option>
                                             {/* 1st Year */}
                                             <option value="CCS101">CCS101 - Intro to Computing</option>
@@ -95,29 +102,31 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
                                             <option value="ITP113">ITP113 - IT Practicum</option>
                                         </select>
                                     </div>
-                                    <input type="text" name="title" className="form-control form-control-sm border-0 bg-transparent shadow-none px-2 mt-1 small" placeholder="Course Title (Optional)" value={formData.title || ''} onChange={handleChange} />
+                                    <input type="text" name="title" className="form-control form-control-sm border-0 bg-transparent shadow-none px-2 mt-1 small" placeholder="Course Title (Optional)" value={formData.title || ''} onChange={handleChange} disabled={role === 'dean'} />
                                 </div>
                                 
-                                <div className="col-md-6">
-                                    <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Section Name</label>
-                                    <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
-                                        <select name="section" className="form-select border-0 shadow-none bg-transparent py-2 w-100" value={formData.section || ''} onChange={handleChange}>
-                                            <option value="">Select Section</option>
-                                            <option value="IT1A">IT1A</option>
-                                            <option value="IT1B">IT1B</option>
-                                            <option value="CS1A">CS1A</option>
-                                        </select>
+                                {role === 'dean' && (
+                                    <div className="col-md-6">
+                                        <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Section Name</label>
+                                        <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
+                                            <select name="section" className="form-select border-0 shadow-none bg-transparent py-2 w-100" value={formData.section || ''} onChange={handleChange} disabled={role === 'admin'}>
+                                                <option value="">Select Section</option>
+                                                <option value="IT1A">IT1A</option>
+                                                <option value="IT1B">IT1B</option>
+                                                <option value="CS1A">CS1A</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 <div className="col-md-12 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Assigned Faculty</label>
                                     <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
-                                        <select name="faculty_id" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.faculty_id || ''} onChange={handleChange}>
+                                        <select name="faculty_id" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.faculty_id || ''} onChange={handleChange} disabled={role === 'dean'}>
                                             <option value="">Select Professor</option>
                                             {faculty.map((f) => (
                                                 <option key={f.faculty_id} value={f.faculty_id}>
-                                                    {f.user?.first_name} {f.user?.last_name}
+                                                    {f.first_name} {f.last_name}
                                                 </option>
                                             ))}
                                         </select>
@@ -127,7 +136,7 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
                                 <div className="col-md-6 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Day</label>
                                     <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
-                                        <select name="days_of_week" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.days_of_week || ''} onChange={handleChange} required>
+                                        <select name="days_of_week" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.days_of_week || ''} onChange={handleChange} required disabled={role === 'dean'}>
                                             <option value="">Select Day</option>
                                             <option value="Monday">Monday</option>
                                             <option value="Tuesday">Tuesday</option>
@@ -141,7 +150,7 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
                                 <div className="col-md-6 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Schedule Type</label>
                                     <div className="d-flex align-items-center form-control border-0 rounded-3 shadow-none bg-light ps-0 pe-2 py-0">
-                                        <select name="schedule_type" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.schedule_type} onChange={handleChange}>
+                                        <select name="schedule_type" className="form-select border-0 shadow-none bg-transparent py-2 w-100 text-muted" value={formData.schedule_type} onChange={handleChange} disabled={role === 'dean'}>
                                             <option value="Class">Lecture</option>
                                             <option value="Laboratory">Laboratory</option>
                                             <option value="Event">Event</option>
@@ -152,26 +161,26 @@ const ScheduleForm = ({ schedule, onSave, onCancel }) => {
                                 <div className="col-md-4 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Start Time</label>
                                     <div className="form-control border-0 rounded-3 shadow-none bg-light px-2 py-0">
-                                        <input type="time" name="start_time" className="form-control border-0 bg-transparent shadow-none py-2 px-1 text-muted text-center" value={formData.start_time || ''} onChange={handleChange} required />
+                                        <input type="time" name="start_time" className="form-control border-0 bg-transparent shadow-none py-2 px-1 text-muted text-center" value={formData.start_time || ''} onChange={handleChange} required disabled={role === 'dean'} />
                                     </div>
                                 </div>
                                 <div className="col-md-4 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>End Time</label>
                                     <div className="form-control border-0 rounded-3 shadow-none bg-light px-2 py-0">
-                                        <input type="time" name="end_time" className="form-control border-0 bg-transparent shadow-none py-2 px-1 text-muted text-center" value={formData.end_time || ''} onChange={handleChange} required />
+                                        <input type="time" name="end_time" className="form-control border-0 bg-transparent shadow-none py-2 px-1 text-muted text-center" value={formData.end_time || ''} onChange={handleChange} required disabled={role === 'dean'} />
                                     </div>
                                 </div>
                                 <div className="col-md-4 mt-4">
                                     <label className="form-label small fw-bold text-muted text-uppercase mb-1" style={{ fontSize: '0.65rem', letterSpacing: '1px', color: '#444' }}>Room</label>
                                     <div className="form-control border-0 rounded-3 shadow-none bg-light pe-2 ps-3 py-0">
-                                        <input type="text" name="room_assignment" className="form-control border-0 bg-transparent shadow-none py-2 px-0 text-muted" placeholder="Comp Lab 1" value={formData.room_assignment || ''} onChange={handleChange} required />
+                                        <input type="text" name="room_assignment" className="form-control border-0 bg-transparent shadow-none py-2 px-0 text-muted" placeholder="Comp Lab 1" value={formData.room_assignment || ''} onChange={handleChange} required disabled={role === 'dean'} />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mt-5 mb-2">
                                 <button type="submit" className="btn w-100 rounded-3 py-3 fw-bold text-white fs-6 shadow-sm" style={{ backgroundColor: '#e94b15', letterSpacing: '2px', border: 'none' }}>
-                                    GENERATE SCHEDULE
+                                    {role === 'dean' ? 'SAVE SECTION ASSIGNMENT' : 'GENERATE SCHEDULE'}
                                 </button>
                             </div>
                         </form>

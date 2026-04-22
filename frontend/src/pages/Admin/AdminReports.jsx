@@ -152,7 +152,7 @@ const AdminReports = () => {
 
                     <div className="card shadow-sm border-0 rounded-4 overflow-hidden bg-white">
                         <div className="p-4 border-bottom bg-light d-flex justify-content-between align-items-center">
-                            <h5 className="fw-bold mb-0">{reportType === 'students' ? 'Student Enrollment Data' : 'Faculty Employment Data'}</h5>
+                            <h5 className="fw-bold mb-0">{reportType === 'students' ? 'Student Data' : 'Faculty Employment Data'}</h5>
                             <span className="badge bg-secondary rounded-pill px-3 shadow-sm">{reportType === 'students' ? data?.students_data?.length : data?.faculty_data?.length} Records</span>
                         </div>
                         <div className="table-responsive">

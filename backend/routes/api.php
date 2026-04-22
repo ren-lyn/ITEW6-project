@@ -27,8 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Student Portal Features
     Route::get('/student/schedule', [\App\Http\Controllers\Api\StudentPortalController::class, 'getSchedule']);
-    Route::get('/student/courses', [\App\Http\Controllers\Api\StudentPortalController::class, 'getEnrolledCourses']);
-    Route::get('/student/registration-form', [\App\Http\Controllers\Api\StudentPortalController::class, 'getRegistrationData']);
+
 
     // Student Comprehensive Profile (My Profile)
     Route::get('/student/my-profile', [\App\Http\Controllers\Api\StudentProfileController::class, 'getProfile']);
@@ -68,9 +67,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('research', ResearchController::class);
     Route::apiResource('materials', MaterialController::class);
 
-    // Attendance
-    Route::get('/attendance', [\App\Http\Controllers\Api\AttendanceController::class, 'index']);
-    Route::post('/attendance/import', [\App\Http\Controllers\Api\AttendanceController::class, 'import']);
-    Route::get('/attendance/analytics', [\App\Http\Controllers\Api\AttendanceController::class, 'getRiskAnalytics']);
-    Route::get('/student/attendance', [\App\Http\Controllers\Api\AttendanceController::class, 'getStudentAttendance']);
+
 });

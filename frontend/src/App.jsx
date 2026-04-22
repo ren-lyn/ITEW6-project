@@ -20,13 +20,8 @@ import VerificationList from './pages/Admin/VerificationList';
 import AdminReports from './pages/Admin/AdminReports';
 import AdminArchives from './pages/Admin/AdminArchives';
 import StudentSchedule from './pages/Student/StudentSchedule';
-import EnrolledCourses from './pages/Student/EnrolledCourses';
-import RegistrationForm from './pages/Student/RegistrationForm';
-import StudentAttendance from './pages/Student/StudentAttendance';
-import AttendanceImport from './pages/Faculty/AttendanceImport';
-import AttendanceSections from './pages/Faculty/AttendanceSections';
-import AttendanceHistory from './pages/Faculty/AttendanceHistory';
-import AttendanceAnalytics from './pages/Faculty/AttendanceAnalytics';
+
+
 
 // Pages
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -76,20 +71,17 @@ const Layout = ({ children }) => {
             { name: 'Research', path: '/admin/research', icon: 'bi-journal-code' },
             { name: 'Materials', path: '/admin/materials', icon: 'bi-file-earmark-pdf' },
         ];
+    } else if (role === 'dean') {
+        menuItems = [
+            { name: 'Dean Dashboard', path: '/admin', icon: 'bi-grid-1x2' },
+            { name: 'Scheduling', path: '/admin/scheduling', icon: 'bi-clock-history' },
+        ];
     } else if (role === 'faculty') {
         menuItems = [
             { name: 'Faculty Dashboard', path: '/user', icon: 'bi-grid-1x2' },
             { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
             { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
-            { 
-                name: 'Attendance', 
-                icon: 'bi-calendar-check',
-                children: [
-                    { name: 'IT Department', path: '/user/attendance/IT' },
-                    { name: 'IS Department', path: '/user/attendance/IS' },
-                    { name: 'CS Department', path: '/user/attendance/CS' },
-                ]
-            },
+
             { name: 'My Syllabi/Research', path: '/user/research', icon: 'bi-journal-text' },
         ];
     } else {
@@ -97,9 +89,8 @@ const Layout = ({ children }) => {
             { name: 'Student Dashboard', path: '/user', icon: 'bi-grid-1x2' },
             { name: 'My Profile', path: '/user/profile', icon: 'bi-person' },
             { name: 'Class Schedule', path: '/user/schedule', icon: 'bi-clock' },
-            { name: 'Enrolled Courses', path: '/user/courses', icon: 'bi-journal-check' },
-            { name: 'Registration Form', path: '/user/registration', icon: 'bi-file-earmark-medical' },
-            { name: 'My Attendance', path: '/user/attendance', icon: 'bi-calendar-check' },
+
+
             { name: 'Documents', path: '/user/documents', icon: 'bi-file-earmark' },
             { name: 'Events', path: '/user/events', icon: 'bi-calendar-event' },
         ];
@@ -235,8 +226,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        // Redirect to the appropriate dashboard instead of just / to prevent loops
-        const target = user.role === 'admin' ? '/admin' : '/user';
+        const target = ['admin', 'dean'].includes(user.role) ? '/admin' : '/user';
         return <Navigate to={target} replace />;
     }
 
@@ -267,13 +257,13 @@ function App() {
                 {/* Root Redirection based on role */}
                 <Route path="/" element={
                     <ProtectedRoute>
-                        {role === 'admin' ? <Navigate to="/admin" replace /> : <Navigate to="/user" replace />}
+                        {['admin', 'dean'].includes(role) ? <Navigate to="/admin" replace /> : <Navigate to="/user" replace />}
                     </ProtectedRoute>
                 } />
 
                 {/* Admin Routes */}
                 <Route path="/admin/*" element={
-                    <ProtectedRoute allowedRoles={['admin']}>
+                    <ProtectedRoute allowedRoles={['admin', 'dean']}>
                         <Layout>
                             <Routes>
                                 <Route path="/" element={<Dashboard />} />
@@ -301,13 +291,8 @@ function App() {
                                 <Route path="/profile" element={<UserProfile />} />
                                 <Route path="/documents" element={<DocumentUpload />} />
                                 <Route path="/schedule" element={<StudentSchedule />} />
-                                <Route path="/courses" element={<EnrolledCourses />} />
-                                <Route path="/registration" element={<RegistrationForm />} />
-                                <Route path="/attendance" element={<StudentAttendance />} />
-                                <Route path="/attendance/:course" element={<AttendanceSections />} />
-                                <Route path="/attendance/import/:section" element={<AttendanceImport />} />
-                                <Route path="/attendance/history/:section" element={<AttendanceHistory />} />
-                                <Route path="/attendance/analytics/:section" element={<AttendanceAnalytics />} />
+
+
                                 <Route path="/events" element={<EventList />} />
                                 <Route path="/research" element={<ResearchList />} />
                                 <Route path="*" element={<Navigate to="/user" replace />} />

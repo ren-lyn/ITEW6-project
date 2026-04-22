@@ -113,14 +113,14 @@ const Dashboard = () => {
         // 3. Risk Distribution (Polar Area Chart)
         if (riskChartRef.current && charts.risk_summary) {
             const ctx = riskChartRef.current.getContext('2d');
-            const { academic_risk, attendance_risk, financial_concern } = charts.risk_summary;
+            const { academic_risk, behavioral_risk, financial_concern } = charts.risk_summary;
 
             riskChartInstance.current = new Chart(ctx, {
                 type: 'polarArea',
                 data: {
-                    labels: ['Academic Risk', 'Attendance Risk', 'Financial Concerns'],
+                    labels: ['Academic Risk', 'Behavioral Risk', 'Financial Concerns'],
                     datasets: [{
-                        data: [academic_risk, attendance_risk, financial_concern],
+                        data: [academic_risk, behavioral_risk, financial_concern],
                         backgroundColor: [
                             'rgba(242, 106, 33, 0.85)', // CCS Orange
                             'rgba(220, 53, 69, 0.85)',  // Danger Red

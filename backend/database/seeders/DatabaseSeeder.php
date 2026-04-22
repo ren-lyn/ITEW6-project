@@ -22,6 +22,15 @@ class DatabaseSeeder extends Seeder
             'must_change_password' => false,
         ]);
 
+        User::create([
+            'name' => 'CCS Dean',
+            'email' => 'dean@ccs.edu',
+            'password' => Hash::make('password'),
+            'role' => 'dean',
+            'status' => 'approved',
+            'must_change_password' => false,
+        ]);
+
         $this->call([
             FacultySeeder::class,
             StudentSeeder::class,

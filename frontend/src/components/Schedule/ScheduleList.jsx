@@ -8,6 +8,13 @@ const ScheduleList = () => {
     const [showForm, setShowForm] = useState(false);
     const [scheduleToEdit, setScheduleToEdit] = useState(null);
 
+    const userJson = localStorage.getItem('user');
+    let user = null;
+    try {
+        if (userJson && userJson !== "undefined") user = JSON.parse(userJson);
+    } catch (e) {}
+    const role = user?.role;
+
     const fetchSchedules = async () => {
         setLoading(true);
         try {
@@ -52,9 +59,11 @@ const ScheduleList = () => {
                     </h2>
                     <p className="text-secondary lead mb-0">Venue, academic class, and departmental event management matrix.</p>
                 </div>
-                <button className="btn btn-primary btn-lg rounded-pill px-4 py-3 fw-bold shadow-sm mt-4 mt-md-0 d-flex align-items-center" onClick={() => setShowForm(true)}>
-                    <i className="bi bi-plus-lg me-2 fs-5"></i> Create Schedule
-                </button>
+                {role === 'admin' && (
+                    <button className="btn btn-primary btn-lg rounded-pill px-4 py-3 fw-bold shadow-sm mt-4 mt-md-0 d-flex align-items-center" onClick={() => setShowForm(true)}>
+                        <i className="bi bi-plus-lg me-2 fs-5"></i> Create Schedule
+                    </button>
+                )}
             </div>
 
             {loading ? (
@@ -71,9 +80,13 @@ const ScheduleList = () => {
                             The scheduling database is currently devoid of records. Start by creating academic classes mapping structures, or logging departmental events to allocate your resources effectively.
                         </p>
                         <div className="mt-2">
-                            <button className="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" onClick={() => setShowForm(true)}>
-                                Create First Schedule Block
-                            </button>
+                            {role === 'admin' ? (
+                                <button className="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm" onClick={() => setShowForm(true)}>
+                                    Create First Schedule Block
+                                </button>
+                            ) : (
+                                <p className="text-muted fw-bold">Waiting for Admin to create schedules.</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -133,11 +146,11 @@ const ScheduleList = () => {
                                         {isClass && schedule.faculty && (
                                             <div className="mb-4 d-flex align-items-center bg-white border p-3 rounded-4 shadow-sm mt-auto">
                                                 <div className={`bg-${themeClass} text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3 shadow-sm`} style={{ width: '42px', height: '42px', fontSize: '1.1rem' }}>
-                                                    {schedule.faculty.user?.first_name?.charAt(0) || 'F'}{schedule.faculty.user?.last_name?.charAt(0)}
+                                                    {schedule.faculty.first_name?.charAt(0) || 'F'}{schedule.faculty.last_name?.charAt(0)}
                                                 </div>
                                                 <div>
                                                     <div className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>
-                                                        {schedule.faculty.user?.first_name} {schedule.faculty.user?.last_name}
+                                                        {schedule.faculty.first_name} {schedule.faculty.last_name}
                                                     </div>
                                                     <div className="text-muted text-uppercase tracking-wider mt-1" style={{ fontSize: '0.65rem' }}>
                                                         <i className="bi bi-bezier2 me-1"></i> {schedule.faculty.department || 'Faculty Instructor'}
@@ -148,11 +161,13 @@ const ScheduleList = () => {
 
                                         <div className="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
                                             <button className="btn btn-sm btn-outline-secondary rounded-pill px-4 fw-bold" onClick={() => handleEdit(schedule)}>
-                                                <i className="bi bi-pencil-square me-2"></i> Modify
+                                                <i className="bi bi-pencil-square me-2"></i> {role === 'dean' ? 'Assign Section' : 'Modify'}
                                             </button>
-                                            <button className="btn btn-sm btn-light text-danger rounded-circle p-2 shadow-sm border border-danger border-opacity-10" onClick={() => handleDelete(schedule.schedule_id)} title="Delete Schedule">
-                                                <i className="bi bi-trash text-danger"></i>
-                                            </button>
+                                            {role === 'admin' && (
+                                                <button className="btn btn-sm btn-light text-danger rounded-circle p-2 shadow-sm border border-danger border-opacity-10" onClick={() => handleDelete(schedule.schedule_id)} title="Delete Schedule">
+                                                    <i className="bi bi-trash text-danger"></i>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

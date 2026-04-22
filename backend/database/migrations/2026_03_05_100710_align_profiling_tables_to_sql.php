@@ -91,7 +91,7 @@ return new class extends Migration {
         Schema::create('behavioral_profiles', function (Blueprint $table) {
             $table->id('behavior_id');
             $table->foreignId('student_id')->constrained('students', 'student_id')->cascadeOnDelete();
-            $table->decimal('attendance_percentage', 5, 2)->nullable();
+
             $table->integer('punctuality_rating')->nullable();
             $table->integer('faculty_evaluation')->nullable();
             $table->integer('peer_evaluation')->nullable();
