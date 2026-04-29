@@ -9,7 +9,7 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::with(['user', 'academicRecords', 'skills', 'organizations'])
+        $query = Student::with(['user', 'academicRecords', 'skills', 'talents', 'organizations'])
             ->whereHas('user');
 
         // Advanced Search & Filtering
@@ -34,11 +34,37 @@ class StudentController extends Controller
             });
         }
 
+        if ($request->filled('min_gwa')) {
+            $query->whereHas('academicRecords', function($q) use ($request) {
+                $q->where('gwa', '>=', $request->input('min_gwa'));
+            });
+        }
+
+        if ($request->filled('max_gwa')) {
+            $query->whereHas('academicRecords', function($q) use ($request) {
+                $q->where('gwa', '<=', $request->input('max_gwa'));
+            });
+        }
+
         // Filtering by Skill (Relationship)
         if ($request->filled('skill')) {
             $skillName = $request->input('skill');
             $query->whereHas('skills', function($q) use ($skillName) {
                 $q->where('skill_name', 'like', "%{$skillName}%");
+            });
+        }
+        
+        if ($request->filled('skills') && is_array($request->input('skills'))) {
+            $skills = $request->input('skills');
+            $query->whereHas('skills', function($q) use ($skills) {
+                $q->whereIn('skill_name', $skills);
+            });
+        }
+
+        if ($request->filled('talents') && is_array($request->input('talents'))) {
+            $talents = $request->input('talents');
+            $query->whereHas('talents', function($q) use ($talents) {
+                $q->whereIn('talent_name', $talents);
             });
         }
 
@@ -54,6 +80,10 @@ class StudentController extends Controller
         if ($request->has('classification')) {
             $classification = $request->input('classification');
             // Assuming this is a generic search for now or matches a specific field
+        }
+
+        if ($request->input('export') === 'true') {
+            return response()->json($query->get());
         }
 
         return response()->json($query->paginate(24)); // Larger page size for card view

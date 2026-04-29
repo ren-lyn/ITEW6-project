@@ -43,6 +43,14 @@ class SkillsAndTalentsSeeder extends Seeder
             ['skill_name' => 'Adobe Creative Suite', 'skill_type' => 'Tools'],
             ['skill_name' => 'Figma / Canva', 'skill_type' => 'Tools'],
             ['skill_name' => 'Git / Version Control', 'skill_type' => 'Tools'],
+
+            // Sports
+            ['skill_name' => 'Basketball', 'skill_type' => 'Sports'],
+            ['skill_name' => 'Volleyball', 'skill_type' => 'Sports'],
+            ['skill_name' => 'Badminton', 'skill_type' => 'Sports'],
+            ['skill_name' => 'Table Tennis', 'skill_type' => 'Sports'],
+            ['skill_name' => 'Chess', 'skill_type' => 'Sports'],
+            ['skill_name' => 'E-Sports', 'skill_type' => 'Sports'],
         ];
 
         foreach ($skills as $skill) {

@@ -28,6 +28,19 @@ class FacultyController extends Controller
             $query->where('rank', $request->input('rank'));
         }
 
+        if ($request->filled('skills') && is_array($request->input('skills'))) {
+            $skills = $request->input('skills');
+            $query->where(function($q) use ($skills) {
+                foreach ($skills as $skill) {
+                    $q->orWhere('research_areas_json', 'like', "%\"{$skill}\"%");
+                }
+            });
+        }
+
+        if ($request->input('export') === 'true') {
+            return response()->json($query->get());
+        }
+
         return response()->json($query->paginate(15));
     }
 

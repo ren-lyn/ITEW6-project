@@ -12,6 +12,12 @@ class Faculty extends Model
     protected $primaryKey = 'faculty_id';
     protected $guarded = ['faculty_id'];
 
+    protected $casts = [
+        'research_areas_json' => 'array',
+        'date_hired' => 'date',
+        'birthdate' => 'date'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

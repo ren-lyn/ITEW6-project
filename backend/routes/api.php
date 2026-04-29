@@ -39,6 +39,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/documents', [DocumentController::class, 'index']);
     Route::post('/documents', [DocumentController::class, 'upload']);
 
+    // Skills & Talents Reference
+    Route::get('/skills-talents', function() {
+        return response()->json([
+            'skills' => \App\Models\Skill::all(),
+            'talents' => \App\Models\Talent::all()
+        ]);
+    });
+
     // Admin Verification Phase
     // Only allow admins to use these routes
     Route::middleware(\App\Http\Middleware\AdminMiddleware::class)->group(function () {
