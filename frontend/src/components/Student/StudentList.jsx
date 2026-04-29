@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { STORAGE_URL } from '../../api/axios';
 import { useLocation } from 'react-router-dom';
 import StudentForm from './StudentForm';
 import StudentDetail from './StudentDetail';
@@ -513,7 +513,7 @@ const StudentList = () => {
                                             <tbody>
                                                 {students.map((student) => {
                                                     const profile_picture = student.user?.profile_picture;
-                                                    const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `http://localhost:8000/storage/${profile_picture}`) : null;
+                                                    const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `${STORAGE_URL}/${profile_picture}`) : null;
 
                                                     const academicRecords = student.academic_records || student.academicRecords || [];
                                                     const latestRecord = [...academicRecords].sort((a, b) => {
@@ -581,7 +581,7 @@ const StudentList = () => {
                                 <div className="row g-4 mb-4">
                                     {students.map((student) => {
                                         const profile_picture = student.user?.profile_picture;
-                                        const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `http://localhost:8000/storage/${profile_picture}`) : null;
+                                        const imgUrl = profile_picture ? (profile_picture.startsWith('http') ? profile_picture : `${STORAGE_URL}/${profile_picture}`) : null;
 
                                         const academicRecords = student.academic_records || student.academicRecords || [];
                                         const latestRecord = [...academicRecords].sort((a, b) => {

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { STORAGE_URL } from './api/axios';
 import ccsLogo from './assets/CCS LOGO.jpg';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
@@ -178,7 +179,7 @@ const Layout = ({ children }) => {
                             <div className="mt-auto px-4 py-3 border-top border-secondary border-opacity-50 d-flex align-items-center">
                                 {user?.profile_picture ? (
                                     <img 
-                                        src={user.profile_picture.startsWith('http') ? user.profile_picture : `http://localhost:8000/storage/${user.profile_picture}`} 
+                                        src={user.profile_picture.startsWith('http') ? user.profile_picture : `${STORAGE_URL}/${user.profile_picture}`} 
                                         alt="Profile" 
                                         className="rounded-circle me-3 object-fit-cover shadow-sm" 
                                         style={{ width: '40px', height: '40px', minWidth: '40px' }} 

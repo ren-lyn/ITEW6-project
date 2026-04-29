@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../api/axios';
+import api, { STORAGE_URL } from '../../api/axios';
 
 const VerificationList = () => {
     const [verifications, setVerifications] = useState([]);
@@ -116,7 +116,7 @@ const VerificationList = () => {
                                                 <h6 className="mb-0 small fw-bold">{item.document_type}</h6>
                                                 {item.file_path ? (
                                                     <a 
-                                                        href={`http://localhost:8000/storage/${item.file_path}`} 
+                                                        href={`${STORAGE_URL}/${item.file_path}`} 
                                                         target="_blank" 
                                                         rel="noreferrer" 
                                                         className="small text-decoration-none"
