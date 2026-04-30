@@ -7,6 +7,7 @@ composer install --no-dev --optimize-autoloader
 
 echo "--- Running migrations ---"
 php artisan migrate --force
+php artisan db:seed --class=AdminSeeder --force
 
 echo "--- Clearing caches ---"
 php artisan config:cache
