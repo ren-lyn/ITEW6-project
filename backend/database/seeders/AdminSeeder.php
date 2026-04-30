@@ -14,8 +14,8 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Use firstOrCreate so it doesn't crash if it runs multiple times
-        User::firstOrCreate(
+        // Use updateOrCreate so it forces the password/status to be correct even if the user already exists
+        User::updateOrCreate(
             ['email' => 'admin@ccs.edu'],
             [
                 'name' => 'CCS Admin',
@@ -26,7 +26,7 @@ class AdminSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'dean@ccs.edu'],
             [
                 'name' => 'CCS Dean',
